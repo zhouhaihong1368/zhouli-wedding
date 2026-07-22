@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d96a7e"/>
+      <stop offset="0.6" stop-color="#c2546c"/>
+      <stop offset="1" stop-color="#a83d56"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f0d9a0"/>
+      <stop offset="1" stop-color="#c9a86a"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- two interlocking rings -->
+  <g fill="none" stroke-width="26">
+    <circle cx="206" cy="300" r="92" stroke="#fff" opacity="0.95"/>
+    <circle cx="306" cy="300" r="92" stroke="url(#gold)"/>
+  </g>
+  <!-- heart on top -->
+  <path d="M256 150c-14-26-40-40-62-40-30 0-52 22-52 50 0 40 52 70 114 102 62-32 114-62 114-102 0-28-22-50-52-50-22 0-48 14-62 40z" fill="#fff" opacity="0.92"/>
+</svg>

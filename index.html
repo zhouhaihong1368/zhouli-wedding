@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>周礼婚礼管家 · 新人登记管家问卷</title>
+<meta name="theme-color" content="#d96a7e">
+<meta name="description" content="婚礼统筹管家新人咨询登记小程序">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="周礼婚礼管家">
+<meta property="og:title" content="周礼婚礼管家 · 新人登记管家问卷">
+<meta property="og:description" content="专业的婚礼统筹管家服务，新人咨询与登记">
+<meta property="og:image" content="https://5e818174a720463e825ea3d39e812b2f.app.codebuddy.work/avatar.jpg">
+<meta property="og:url" content="https://5e818174a720463e825ea3d39e812b2f.app.codebuddy.work">
+<meta property="og:type" content="website">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<style>
+:root{
+  --rose:#d96a7e; --rose-deep:#b84a60; --rose-soft:#fbe8ec; --rose-bg:#fdf4f6;
+  --gold:#c9a86a; --gold-soft:#f5edd9; --cream:#fffaf5; --ink:#2d2a28; --ink-soft:#6b6360;
+  --line:#f0e6e0; --green:#4caf7d; --blue:#5b8def; --orange:#e89a3c;
+  --shadow:0 4px 18px rgba(217,106,126,.12); --shadow-sm:0 2px 8px rgba(0,0,0,.05);
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f3ede9;color:var(--ink);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+input,select,textarea,button{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+.app{max-width:480px;margin:0 auto;min-height:100vh;background:#f5f0ec;position:relative;padding-bottom:70px;box-shadow:0 0 40px rgba(0,0,0,.06)}
+
+/* ===== Tab Bar ===== */
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;display:flex;border-top:1px solid var(--line);z-index:200;padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
+.tabbar .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;color:#b0a8a4;font-size:11px;transition:.2s}
+.tabbar .tab .ic{width:24px;height:24px;display:flex;align-items:center;justify-content:center}
+.tabbar .tab.active{color:var(--rose)}
+.tabbar .tab.active .ic svg{stroke:var(--rose);fill:var(--rose-soft)}
+.role-couple .tabbar .tab-planner{display:none}
+.role-planner .tabbar .tab-couple{display:none}
+/* role-based visibility */
+.role-couple .planner-only{display:none!important}
+.role-planner .couple-only{display:none!important}
+.role-couple .couple-hide{display:none!important}
+
+/* ===== Views ===== */
+.view{display:none;animation:fade .3s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ===== Home ===== */
+.hero{background:linear-gradient(150deg,#d96a7e 0%,#c2546c 60%,#a83d56 100%);color:#fff;padding:42px 22px 30px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;top:-30px;right:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.08)}
+.hero::before{content:"";position:absolute;bottom:-50px;left:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06)}
+.hero .brand{display:flex;align-items:center;gap:10px;position:relative;z-index:2}
+.hero .logo{width:44px;height:44px;border-radius:13px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:24px;backdrop-filter:blur(6px);overflow:hidden}
+.hero .logo img{width:100%;height:100%;object-fit:cover}
+.hero .brand h1{font-size:19px;font-weight:700;letter-spacing:.5px}
+.hero .brand p{font-size:12px;opacity:.85;margin-top:1px}
+.hero .greet{margin-top:26px;position:relative;z-index:2}
+.hero .greet h2{font-size:24px;font-weight:800;line-height:1.35}
+.hero .greet p{font-size:13px;opacity:.9;margin-top:6px;max-width:280px}
+.hero .cta-row{display:flex;gap:10px;margin-top:20px;position:relative;z-index:2}
+.hero .cta{flex:1;background:#fff;color:var(--rose-deep);font-weight:700;padding:12px;border-radius:12px;font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 16px rgba(0,0,0,.12)}
+.hero .cta.ghost{background:rgba(255,255,255,.16);color:#fff;backdrop-filter:blur(6px)}
+
+.home-body{padding:18px 16px}
+.sec-title{font-size:15px;font-weight:700;margin:18px 0 12px;display:flex;align-items:center;justify-content:space-between}
+.sec-title .more{font-size:12px;color:var(--ink-soft);font-weight:400}
+
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.stat-card{background:#fff;border-radius:var(--r);padding:16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.stat-card .num{font-size:26px;font-weight:800;color:var(--rose)}
+.stat-card .num.g{color:var(--green)} .stat-card .num.b{color:var(--blue)} .stat-card .num.o{color:var(--orange)}
+.stat-card .lbl{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.stat-card .bg-ic{position:absolute;right:8px;bottom:6px;font-size:34px;opacity:.1}
+
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.quick-item{background:#fff;border-radius:12px;padding:14px 6px;text-align:center;box-shadow:var(--shadow-sm)}
+.quick-item .qi-ic{width:42px;height:42px;border-radius:12px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.quick-item .qi-tx{font-size:11px;color:var(--ink-soft)}
+
+.recent-list{background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-sm)}
+.recent-item{display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line)}
+.recent-item:last-child{border-bottom:none}
+.recent-item .av{width:40px;height:40px;border-radius:50%;background:var(--rose-soft);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--rose-deep);flex-shrink:0}
+.recent-item .ri-mid{flex:1;min-width:0}
+.recent-item .ri-name{font-size:14px;font-weight:600}
+.recent-item .ri-sub{font-size:12px;color:var(--ink-soft);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent-item .ri-right{text-align:right;flex-shrink:0}
+
+/* ===== Badges ===== */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge.new{background:#eaf6ff;color:#2b7fd6}
+.badge.contacted{background:#fff4e0;color:#c9781a}
+.badge.signed{background:#e8f5ee;color:#2e9e62}
+.badge.won{background:#f0eaff;color:#6a4fd6}
+.badge.lost{background:#f3eeec;color:#9a8a85}
+
+/* ===== Register Form ===== */
+.form-head{background:#fff;padding:18px 18px 14px;border-bottom:1px solid var(--line)}
+.form-head h2{font-size:18px;font-weight:700}
+.form-head p{font-size:12px;color:var(--ink-soft);margin-top:3px}
+.steps{display:flex;align-items:center;margin-top:14px;gap:0}
+.steps .st{flex:1;display:flex;align-items:center}
+.steps .st .dot{width:26px;height:26px;border-radius:50%;background:#eee;color:#aaa;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.3s}
+.steps .st.active .dot{background:var(--rose);color:#fff}
+.steps .st.done .dot{background:var(--green);color:#fff}
+.steps .st .bar{flex:1;height:3px;background:#eee;margin:0 4px;border-radius:2px}
+.steps .st.done .bar{background:var(--green)}
+.steps .st.active .bar{background:linear-gradient(90deg,var(--rose),#eee)}
+.steps .st:last-child .bar{display:none}
+
+.form-body{padding:16px}
+.form-card{background:#fff;border-radius:var(--r);padding:18px 16px;box-shadow:var(--shadow-sm);margin-bottom:14px}
+.form-card h3{font-size:14px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.form-card .fc-desc{font-size:12px;color:var(--ink-soft);margin-bottom:14px}
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.field label .req{color:var(--rose)}
+.field input,.field select,.field textarea{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:14px;background:#fff;transition:.2s;outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--rose);box-shadow:0 0 0 3px var(--rose-soft)}
+.field textarea{resize:none;min-height:74px}
+.field .hint{font-size:11px;color:var(--ink-soft);margin-top:4px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.chip-group{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 14px;border:1.5px solid var(--line);border-radius:20px;font-size:13px;background:#fff;color:var(--ink-soft);transition:.2s}
+.chip.on{background:var(--rose-soft);border-color:var(--rose);color:var(--rose-deep);font-weight:600}
+
+.opt-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.opt-card{border:1.5px solid var(--line);border-radius:12px;padding:13px 12px;text-align:center;transition:.2s;position:relative}
+.opt-card .oc-ic{font-size:26px}
+.opt-card .oc-tx{font-size:12px;font-weight:600;margin-top:4px}
+.opt-card.on{background:var(--rose-soft);border-color:var(--rose)}
+.opt-card.on::after{content:"✓";position:absolute;top:5px;right:7px;color:var(--rose);font-size:13px;font-weight:700}
+
+.range-chips{display:flex;gap:8px;flex-wrap:wrap}
+.range-chips .chip{flex:0 0 auto}
+
+.form-foot{display:flex;gap:10px;padding:14px 16px;position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line)}
+.btn{flex:1;padding:13px;border-radius:12px;font-size:15px;font-weight:700;transition:.2s}
+.btn-primary{background:linear-gradient(135deg,var(--rose),var(--rose-deep));color:#fff;box-shadow:0 4px 12px rgba(217,106,126,.3)}
+.btn-primary:active{transform:scale(.97)}
+.btn-ghost{background:#f5f0ec;color:var(--ink-soft);border:1.5px solid var(--line)}
+
+/* ===== Success ===== */
+.success-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;padding:30px;text-align:center}
+.success-wrap .check{width:80px;height:80px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:42px;color:#fff;margin-bottom:20px;animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(0)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.success-wrap h2{font-size:22px;font-weight:800;margin-bottom:8px}
+.success-wrap p{font-size:14px;color:var(--ink-soft);max-width:300px;line-height:1.7}
+
+/* ===== Planner Dashboard ===== */
+.planner-head{background:linear-gradient(150deg,#3a3531,#2d2a28);color:#fff;padding:18px 18px 22px}
+.planner-head .ph-top{display:flex;align-items:center;justify-content:space-between}
+.planner-head h2{font-size:18px;font-weight:700}
+.planner-head .ph-sub{font-size:12px;opacity:.7;margin-top:2px}
+.planner-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.planner-stats .ps{background:rgba(255,255,255,.1);border-radius:10px;padding:10px 6px;text-align:center;backdrop-filter:blur(4px)}
+.planner-stats .ps .n{font-size:20px;font-weight:800}
+.planner-stats .ps .l{font-size:10px;opacity:.8;margin-top:1px}
+
+.filter-bar{display:flex;gap:7px;padding:12px 16px;overflow-x:auto;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-bar .fb{padding:6px 14px;border-radius:20px;font-size:13px;background:#f5f0ec;color:var(--ink-soft);white-space:nowrap;transition:.2s}
+.filter-bar .fb.on{background:var(--rose);color:#fff;font-weight:600}
+
+.search-box{padding:10px 16px;background:#fff}
+.search-box .sb{display:flex;align-items:center;gap:8px;background:#f5f0ec;border-radius:10px;padding:9px 12px}
+.search-box .sb input{border:none;background:none;outline:none;flex:1;font-size:13px}
+.search-box .sb .s-ic{color:#bbb}
+
+.reg-list{padding:12px 16px}
+.reg-card{background:#fff;border-radius:var(--r);padding:15px;margin-bottom:12px;box-shadow:var(--shadow-sm);transition:.2s}
+.reg-card:active{transform:scale(.99)}
+.reg-card .rc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.reg-card .rc-name{font-size:15px;font-weight:700;display:flex;align-items:center;gap:7px}
+.reg-card .rc-info{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-soft);margin-bottom:10px}
+.reg-card .rc-info span{display:inline-flex;align-items:center;gap:3px}
+.reg-card .rc-foot{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--line)}
+.reg-card .rc-date{font-size:11px;color:#bbb}
+
+.empty{text-align:center;padding:60px 20px;color:#bbb}
+.empty .em-ic{font-size:50px;opacity:.4;margin-bottom:12px}
+.empty p{font-size:13px}
+
+/* ===== Detail Sheet ===== */
+.sheet-mask{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;opacity:0;pointer-events:none;transition:.3s}
+.sheet-mask.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:480px;background:#f5f0ec;border-radius:20px 20px 0 0;z-index:301;transition:.35s cubic-bezier(.22,1,.36,1);max-height:88vh;display:flex;flex-direction:column}
+.sheet.show{transform:translateX(-50%) translateY(0)}
+.sheet .sh-grip{width:38px;height:4px;background:#ddd;border-radius:2px;margin:10px auto 4px}
+.sheet .sh-head{display:flex;align-items:center;justify-content:space-between;padding:6px 18px 12px;border-bottom:1px solid var(--line)}
+.sheet .sh-head h3{font-size:16px;font-weight:700}
+.sheet .sh-head .close{font-size:20px;color:#aaa;padding:4px}
+.sheet .sh-body{overflow-y:auto;padding:14px 16px 30px}
+.sheet .sh-body::-webkit-scrollbar{width:3px}
+
+.det-section{background:#fff;border-radius:var(--r);padding:14px;margin-bottom:12px}
+.det-section h4{font-size:12px;font-weight:700;color:var(--rose);margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.det-row{display:flex;padding:6px 0;font-size:13px}
+.det-row .dk{color:var(--ink-soft);width:84px;flex-shrink:0}
+.det-row .dv{flex:1;font-weight:500;word-break:break-all}
+.det-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.det-tags .dt{background:var(--rose-soft);color:var(--rose-deep);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
+
+.status-pick{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.status-pick .sp{padding:8px 16px;border-radius:20px;font-size:13px;border:1.5px solid var(--line);background:#fff}
+.status-pick .sp.on{background:var(--rose);color:#fff;border-color:var(--rose);font-weight:600}
+
+.sh-actions{display:flex;gap:10px;padding:14px 16px;background:#fff;border-top:1px solid var(--line)}
+.sh-actions .btn{flex:1}
+
+/* ===== Profile ===== */
+.prof-head{background:#fff;padding:24px 18px;text-align:center;border-bottom:1px solid var(--line)}
+.prof-head .pa{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--rose),var(--gold));margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;overflow:hidden}
+.prof-head .pa img{width:100%;height:100%;object-fit:cover}
+.prof-head h3{font-size:17px;font-weight:700}
+.prof-head p{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.prof-menu{margin:14px 16px;background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-sm)}
+.prof-menu .pmi{display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid var(--line)}
+.prof-menu .pmi:last-child{border-bottom:none}
+.prof-menu .pmi .pm-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.prof-menu .pmi .pm-tx{flex:1;font-size:14px}
+.prof-menu .pmi .pm-arr{color:#ccc}
+
+.role-switch{margin:14px 16px;background:#fff;border-radius:var(--r);padding:16px;box-shadow:var(--shadow-sm)}
+.role-switch h4{font-size:13px;font-weight:700;margin-bottom:10px}
+.role-switch .rs-opts{display:flex;gap:10px}
+.role-switch .rs-opt{flex:1;border:1.5px solid var(--line);border-radius:10px;padding:12px;text-align:center;transition:.2s}
+.role-switch .rs-opt.on{border-color:var(--rose);background:var(--rose-soft)}
+.role-switch .rs-opt .ro-ic{font-size:24px}
+.role-switch .rs-opt .ro-tx{font-size:12px;font-weight:600;margin-top:3px}
+
+/* admin status */
+.as-tag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-left:6px}
+.as-tag.as-on{background:#e8f5ee;color:var(--green)}
+.as-tag.as-off{background:#fef0e8;color:var(--orange)}
+
+/* admin settings modal */
+.admin-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:450;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.3s}
+.admin-modal.show{opacity:1;pointer-events:auto}
+.admin-card{background:#fff;border-radius:16px;padding:24px;width:calc(100% - 48px);max-width:360px;box-shadow:0 16px 48px rgba(0,0,0,.15)}
+.admin-card h3{font-size:17px;margin-bottom:18px;text-align:center}
+.admin-card .af-label{font-size:12px;color:var(--ink-soft);margin-bottom:4px;margin-top:10px}
+.admin-card .af-label:first-of-type{margin-top:0}
+.admin-card input{border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;width:100%}
+.admin-card .af-btns{display:flex;gap:10px;margin-top:18px}
+.admin-card .af-btns button{flex:1;padding:10px;border-radius:10px;font-size:14px;font-weight:600}
+.admin-card .af-save{background:var(--rose);color:#fff}
+
+.danger-btn{margin:14px 16px;background:#fff;border-radius:var(--r);padding:14px;text-align:center;color:#d9534f;font-weight:600;font-size:14px;box-shadow:var(--shadow-sm)}
+
+/* toast */
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.78);color:#fff;padding:12px 22px;border-radius:12px;font-size:14px;z-index:999;opacity:0;transition:.25s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* password dialog */
+.pwd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.3s}
+.pwd-overlay.show{opacity:1;pointer-events:auto}
+.pwd-dialog{background:#fff;border-radius:16px;padding:28px 22px 22px;width:calc(100% - 64px);max-width:320px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.18);transform:translateY(16px);transition:.3s}
+.pwd-overlay.show .pwd-dialog{transform:translateY(0)}
+.pwd-dialog .pd-icon{font-size:36px;margin-bottom:8px}
+.pwd-dialog h3{font-size:17px;font-weight:700;margin-bottom:4px}
+.pwd-dialog .pd-hint{font-size:12px;color:var(--ink-soft);margin-bottom:16px}
+.pwd-dialog input{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:12px;font-size:18px;text-align:center;outline:none;letter-spacing:6px;transition:.2s}
+.pwd-dialog input:focus{border-color:var(--rose);box-shadow:0 0 0 3px var(--rose-soft)}
+.pwd-dialog .pd-err{font-size:12px;color:#d9534f;margin-top:8px;min-height:18px}
+.pwd-dialog .pd-btns{display:flex;gap:10px;margin-top:16px}
+.pwd-dialog .pd-btns button{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:600;transition:.2s}
+.pwd-dialog .pd-btns .pd-submit{background:linear-gradient(135deg,var(--rose),var(--rose-deep));color:#fff}
+.pwd-dialog .pd-btns .pd-submit:active{transform:scale(.97)}
+.pwd-dialog .pd-btns .pd-cancel{background:#f5f0ec;color:var(--ink-soft)}
+.pwd-row{display:flex;align-items:center;justify-content:space-between}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- ============ 首页 ============ -->
+  <div class="view active" id="view-home">
+    <div class="hero">
+      <div class="brand">
+        <div class="logo"><img src="avatar.jpg" alt="头像"></div>
+        <div>
+          <h1>周礼婚礼管家</h1>
+          <p>周海红 · 统筹管家工作室</p>
+        </div>
+      </div>
+      <div class="greet">
+        <h2 id="greetTitle">让每一场婚礼<br>都被温柔以待</h2>
+        <p id="greetSub">新人在线登记咨询信息，管家一键管理全部客户与跟进进度。</p>
+      </div>
+      <div class="cta-row">
+        <button class="cta" id="heroMainCta" onclick="go('register')">📝 新人登记</button>
+        <button class="cta ghost couple-hide" id="heroSecondCta" onclick="go('planner')">📊 管家后台</button>
+      </div>
+    </div>
+    <div class="home-body">
+      <div class="sec-title planner-only">数据概览</div>
+      <div class="stats-grid planner-only" id="homeStats"></div>
+
+      <div class="sec-title couple-only" style="margin-top:0">✨ 为您服务</div>
+      <div class="couple-only" style="background:#fff;border-radius:var(--r);padding:18px;box-shadow:var(--shadow-sm);margin-bottom:12px;font-size:14px;line-height:1.8;color:var(--ink-soft)">
+        <p>👋 欢迎来到<strong style="color:var(--rose-deep)">周礼婚礼管家</strong></p>
+        <p style="margin-top:6px">点击下方「📝 新人登记」填写咨询表，我们将在24小时内与您联系，为您量身定制婚礼方案。</p>
+      </div>
+
+      <div class="sec-title planner-only">快捷功能</div>
+      <div class="quick-grid planner-only">
+        <div class="quick-item" onclick="go('register')"><div class="qi-ic" style="background:var(--rose-soft)">✍️</div><div class="qi-tx">填写登记</div></div>
+        <div class="quick-item" onclick="go('planner')"><div class="qi-ic" style="background:var(--gold-soft)">📋</div><div class="qi-tx">客户列表</div></div>
+        <div class="quick-item" onclick="exportData()"><div class="qi-ic" style="background:#e8f5ee">📤</div><div class="qi-tx">导出数据</div></div>
+        <div class="quick-item" onclick="go('profile')"><div class="qi-ic" style="background:#eaf6ff">⚙️</div><div class="qi-tx">设置</div></div>
+      </div>
+
+      <div class="sec-title planner-only">最近登记 <span class="more" onclick="go('planner')">查看全部 ›</span></div>
+      <div class="recent-list planner-only" id="recentList"></div>
+    </div>
+  </div>
+
+  <!-- ============ 登记 ============ -->
+  <div class="view" id="view-register">
+    <div class="form-head">
+      <h2>新人咨询登记表</h2>
+      <p>请如实填写以下信息，管家将在24小时内与您联系</p>
+      <div class="steps" id="stepsBar"></div>
+    </div>
+    <div class="form-body" id="formBody"></div>
+    <div class="form-foot">
+      <button class="btn btn-ghost" id="prevBtn" onclick="prevStep()" style="display:none">上一步</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">下一步</button>
+    </div>
+  </div>
+
+  <!-- ============ 成功 ============ -->
+  <div class="view" id="view-success">
+    <div class="success-wrap">
+      <div class="check">✓</div>
+      <h2>登记提交成功！</h2>
+      <p>感谢您的信任，周礼婚礼管家已收到您的信息。<br>我们将在24小时内与您取得联系，期待与您共同筹备一场完美婚礼 💐</p>
+      <div style="display:flex;gap:10px;margin-top:24px;width:100%;max-width:260px">
+        <button class="btn btn-ghost" onclick="go('home')">返回首页</button>
+        <button class="btn btn-primary planner-only" onclick="go('planner')">查看进度</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 管家后台 ============ -->
+  <div class="view" id="view-planner">
+    <div class="planner-head">
+      <div class="ph-top">
+        <div><h2>管家后台</h2><div class="ph-sub" id="plannerDate"></div></div>
+        <div style="display:flex;gap:6px">
+          <button onclick="logOutAdmin()" style="background:rgba(255,255,255,.15);color:#fff;padding:8px 12px;border-radius:10px;font-size:12px">🚪 退出</button>
+          <button onclick="exportData()" style="background:rgba(255,255,255,.15);color:#fff;padding:8px 12px;border-radius:10px;font-size:12px">📤 导出</button>
+        </div>
+      </div>
+      <div class="planner-stats" id="plannerStats"></div>
+    </div>
+    <div class="search-box">
+      <div class="sb">
+        <span class="s-ic">🔍</span>
+        <input id="searchInput" placeholder="搜索新人姓名 / 手机号 / 酒店" oninput="renderRegList()">
+      </div>
+    </div>
+    <div class="filter-bar" id="filterBar"></div>
+    <div class="reg-list" id="regList"></div>
+  </div>
+
+  <!-- ============ 我的 ============ -->
+  <div class="view" id="view-profile">
+    <div class="prof-head">
+      <div class="pa"><img src="avatar.jpg" alt="头像"></div>
+      <h3 id="profName">周礼婚礼管家工作室</h3>
+      <p><span id="adminProfName">周海红</span> · 统筹管家 <span class="as-tag as-off" id="adminStatus">未登录</span></p>
+    </div>
+    <div class="role-switch">
+      <h4>当前身份</h4>
+      <div class="rs-opts">
+        <div class="rs-opt on" id="roleCouple" onclick="setRole('couple')"><div class="ro-ic">💑</div><div class="ro-tx">新人端</div></div>
+        <div class="rs-opt" id="rolePlanner" onclick="setRole('planner')"><div class="ro-ic">📋</div><div class="ro-tx">管家端<div style="font-size:10px;font-weight:400;color:var(--orange);margin-top:1px">需管理员登录</div></div></div>
+      </div>
+    </div>
+    <div class="prof-menu">
+      <div class="pmi planner-only" onclick="openAdminSettings()"><div class="pm-ic" style="background:var(--gold-soft)">👤</div><div class="pm-tx">管理员设置</div><div class="pm-arr">›</div></div>
+      <div class="pmi planner-only" onclick="exportData()"><div class="pm-ic" style="background:var(--gold-soft)">📤</div><div class="pm-tx">导出全部数据</div><div class="pm-arr">›</div></div>
+      <div class="pmi planner-only" onclick="importData()"><div class="pm-ic" style="background:#eaf6ff">📥</div><div class="pm-tx">导入数据</div><div class="pm-arr">›</div></div>
+      <div class="pmi planner-only" onclick="loadDemo()"><div class="pm-ic" style="background:var(--rose-soft)">✨</div><div class="pm-tx">载入示例数据</div><div class="pm-arr">›</div></div>
+      <div class="pmi" onclick="clearDraft()"><div class="pm-ic" style="background:#e8f5ee">🧹</div><div class="pm-tx">清空登记草稿</div><div class="pm-arr">›</div></div>
+      <div class="pmi planner-only" onclick="logOutAdmin()"><div class="pm-ic" style="background:#fef0e8">🚪</div><div class="pm-tx">退出管理员登录</div><div class="pm-arr">›</div></div>
+    </div>
+    <div class="danger-btn planner-only" onclick="clearAll()">🗑 清空全部数据</div>
+    <div style="text-align:center;padding:10px;font-size:11px;color:#bbb">周礼婚礼管家新人登记小程序 · v1.0</div>
+  </div>
+
+  <!-- ============ Detail Sheet ============ -->
+  <div class="sheet-mask" id="sheetMask" onclick="closeSheet()"></div>
+  <div class="sheet" id="detailSheet">
+    <div class="sh-grip"></div>
+    <div class="sh-head">
+      <h3 id="detTitle">登记详情</h3>
+      <button class="close" onclick="closeSheet()">✕</button>
+    </div>
+    <div class="sh-body" id="detBody"></div>
+    <div class="sh-actions">
+      <button class="btn btn-ghost" onclick="callReg()">📞 联系新人</button>
+      <button class="btn btn-primary" onclick="saveStatus()">保存状态</button>
+    </div>
+  </div>
+
+  <!-- ============ Tab Bar ============ -->
+  <div class="tabbar" id="tabbar">
+    <div class="tab active" data-view="home" onclick="go('home')">
+      <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a8a4" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg></div>
+      <span>首页</span>
+    </div>
+    <div class="tab tab-couple" data-view="register" onclick="go('register')">
+      <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a8a4" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></div>
+      <span>登记</span>
+    </div>
+    <div class="tab tab-planner" data-view="planner" onclick="go('planner')">
+      <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a8a4" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></div>
+      <span>管家</span>
+    </div>
+    <div class="tab" data-view="profile" onclick="go('profile')">
+      <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a8a4" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
+      <span>我的</span>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <!-- 密码验证弹窗 -->
+  <div class="pwd-overlay" id="pwdOverlay">
+    <div class="pwd-dialog" id="pwdDialog">
+      <div class="pd-icon">🔐</div>
+      <h3 id="pwdTitle">管家身份验证</h3>
+      <div class="pd-hint" id="pwdHint">请输入管理密码进入后台</div>
+      <input type="password" id="pwdInput" placeholder="输入密码" maxlength="20" onkeydown="if(event.key==='Enter')handlePwdSubmit()">
+      <div class="pd-err" id="pwdErr"></div>
+      <div class="pd-btns">
+        <button class="pd-cancel" id="pwdCancel" onclick="cancelPwd()">取消</button>
+        <button class="pd-submit" onclick="handlePwdSubmit()">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 管理员设置弹窗 -->
+  <div class="admin-modal" id="adminModal">
+    <div class="admin-card">
+      <h3>👤 管理员设置</h3>
+      <div class="af-label">管理员姓名</div>
+      <input type="text" id="adminNameInput" placeholder="输入姓名">
+      <div class="af-label">管理密码</div>
+      <input type="password" id="adminPwdInput" placeholder="输入新密码，留空则不修改" maxlength="20">
+      <div class="af-btns">
+        <button class="btn btn-ghost" onclick="closeAdminSettings()">取消</button>
+        <button class="af-save" onclick="saveAdminSettings()">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ========== State ========== */
+const STORE_KEY='wedding_planner_regs';
+const DRAFT_KEY='wedding_planner_draft';
+const STATUS={new:{label:'新登记',cls:'new'},contacted:{label:'已联系',cls:'contacted'},signed:{label:'已签约',cls:'signed'},won:{label:'已成交',cls:'won'},lost:{label:'已流失',cls:'lost'}};
+const STEPS=[
+  {title:'基本信息',desc:'让我们先认识一下你们'},
+  {title:'婚礼概况',desc:'婚期与场地信息'},
+  {title:'宾客预算',desc:'规模与预算范围'},
+  {title:'风格偏好',desc:'你梦想中的婚礼'},
+  {title:'服务需求',desc:'需要管家帮你安排什么'},
+  {title:'补充信息',desc:'其他需求与来源'},
+  {title:'深度了解',desc:'让我们真正了解你们'}
+];
+const API_BASE='https://true-adults-start.loca.lt';
+let curStep=0;
+let curRole='couple';
+let curFilter='all';
+let curDetailId=null;
+let curStatusPick='new';
+let form={services:[],weddingType:''};
+let regsCache=null;
+
+/* ========== Cloud Storage ========== */
+function getRegs(){return regsCache||[]}
+function setRegsCache(r){regsCache=r}
+async function loadRegsFromCloud(){
+  try{
+    const res=await fetch(API_BASE+'/api/regs');
+    if(!res.ok)throw new Error('API error');
+    regsCache=await res.json();
+    return regsCache;
+  }catch(e){
+    // fallback to localStorage
+    try{regsCache=JSON.parse(localStorage.getItem(STORE_KEY))||[]}catch(_){regsCache=[]}
+    console.warn('云端加载失败，使用本地缓存:',e.message);
+    return regsCache;
+  }
+}
+async function saveRegsToCloud(regs){
+  try{
+    await fetch(API_BASE+'/api/regs/batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(regs)});
+  }catch(e){console.warn('云端保存失败:',e.message)}
+  // always cache locally
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(regs))}catch(_){}
+  regsCache=regs;
+}
+async function addRegToCloud(reg){
+  try{
+    const res=await fetch(API_BASE+'/api/regs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(reg)});
+    if(!res.ok)throw new Error('API error');
+    // reload from cloud
+    await loadRegsFromCloud();
+  }catch(e){
+    // fallback: add locally
+    const regs=getRegs();
+    regs.push(reg);
+    await saveRegsToCloud(regs);
+  }
+}
+function getDraft(){try{return JSON.parse(localStorage.getItem(DRAFT_KEY))||null}catch(e){return null}}
+function saveDraft(){localStorage.setItem(DRAFT_KEY,JSON.stringify(form))}
+function loadDraftIntoForm(){const d=getDraft();if(d){form=Object.assign({services:[],weddingType:''},d)}}
+
+const PWD_KEY='wedding_planner_pwd';
+const PWD_DEFAULT='8888';
+const ADMIN_NAME_KEY='wedding_admin_name';
+const ADMIN_DEFAULT_NAME='周海红';
+let pwdMode='verify';
+let pwdCallback=null;
+
+function getPwd(){return localStorage.getItem(PWD_KEY)||PWD_DEFAULT}
+function setPwd(v){localStorage.setItem(PWD_KEY,v)}
+function getAdminName(){return localStorage.getItem(ADMIN_NAME_KEY)||ADMIN_DEFAULT_NAME}
+function setAdminName(v){localStorage.setItem(ADMIN_NAME_KEY,v)}
+function isAdminAuth(){return sessionStorage.getItem('wedding_admin_auth')==='1'}
+
+/* ========== Navigation ========== */
+function go(v){
+  if(v==='planner'){
+    // within same session, navigating to planner tab is fine
+    if(isAdminAuth()&&curRole==='planner'){enterPlanner();return}
+    // otherwise require password
+    showPwd('管理员登录','请输入管理员密码进入后台',()=>{
+      sessionStorage.setItem('wedding_admin_auth','1');
+      setAppRole('planner');
+      enterPlanner();
+      updateAdminUI();
+    });
+    return;
+  }
+  enterView(v);
+}
+function enterPlanner(){
+  enterView('planner');
+  renderPlanner();
+}
+function enterView(v){
+  document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.tabbar .tab').forEach(t=>t.classList.toggle('active',t.dataset.view===v));
+  window.scrollTo(0,0);
+  if(v==='home')renderHome();
+  if(v==='register'){curStep=0;loadDraftIntoForm();renderForm()}
+}
+function logOutAdmin(){
+  sessionStorage.removeItem('wedding_admin_auth');
+  setAppRole('couple');
+  toast('已退出管理员模式');
+  document.getElementById('adminStatus').textContent='未登录';
+  document.getElementById('adminStatus').className='as-tag as-off';
+}
+
+/* ========== Toast ========== */
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600)}
+
+/* ========== Password ========== */
+function showPwd(title,hint,cb,mode){
+  pwdMode=mode||'verify';
+  pwdCallback=cb||null;
+  document.getElementById('pwdTitle').textContent=title;
+  document.getElementById('pwdHint').textContent=hint;
+  document.getElementById('pwdInput').value='';
+  document.getElementById('pwdErr').textContent='';
+  document.getElementById('pwdCancel').style.display='block';
+  const btn=document.querySelector('#pwdDialog .pd-btns .pd-submit');
+  btn.textContent=pwdMode==='set'?'确认修改':'确认';
+  document.getElementById('pwdOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('pwdInput').focus(),200);
+}
+function handlePwdSubmit(){
+  const val=document.getElementById('pwdInput').value.trim();
+  if(!val){document.getElementById('pwdErr').textContent='请输入密码';return}
+  if(pwdMode==='set'){
+    setPwd(val);
+    document.getElementById('pwdOverlay').classList.remove('show');
+    toast('密码修改成功');
+    return;
+  }
+  if(val===getPwd()){
+    document.getElementById('pwdOverlay').classList.remove('show');
+    if(pwdCallback)pwdCallback();
+  }else{
+    document.getElementById('pwdErr').textContent='密码错误，请重试';
+    document.getElementById('pwdInput').value='';
+    document.getElementById('pwdInput').focus();
+  }
+}
+function cancelPwd(){
+  document.getElementById('pwdOverlay').classList.remove('show');
+}
+function changePwd(){
+  showPwd('修改密码','请先输入当前密码',()=>{
+    showPwd('设置新密码','请输入6位以内新密码',null,'set');
+  });
+}
+
+/* ========== Admin Settings ========== */
+function openAdminSettings(){
+  document.getElementById('adminNameInput').value=getAdminName();
+  document.getElementById('adminPwdInput').value='';
+  document.getElementById('adminModal').classList.add('show');
+  setTimeout(()=>document.getElementById('adminNameInput').focus(),200);
+}
+function closeAdminSettings(){
+  document.getElementById('adminModal').classList.remove('show');
+}
+function saveAdminSettings(){
+  const name=document.getElementById('adminNameInput').value.trim();
+  const pwd=document.getElementById('adminPwdInput').value.trim();
+  if(!name){toast('请输入管理员姓名');return}
+  setAdminName(name);
+  if(pwd)setPwd(pwd);
+  document.getElementById('adminModal').classList.remove('show');
+  updateAdminUI();
+  toast(pwd?'姓名和密码已更新':'姓名已更新');
+}
+function updateAdminUI(){
+  const auth=isAdminAuth();
+  document.getElementById('adminStatus').textContent=auth?'已登录':'未登录';
+  document.getElementById('adminStatus').className='as-tag '+(auth?'as-on':'as-off');
+  document.getElementById('adminProfName').textContent=getAdminName();
+}
+
+/* ========== Home ========== */
+function renderHome(){
+  const regs=getRegs();
+  const stats={
+    total:regs.length,
+    upcoming:regs.filter(r=>r.weddingDate&&new Date(r.weddingDate)>new Date()).length,
+    signed:regs.filter(r=>r.status==='signed'||r.status==='won').length,
+    newc:regs.filter(r=>r.status==='new').length
+  };
+  document.getElementById('homeStats').innerHTML=`
+    <div class="stat-card"><div class="num">${stats.total}</div><div class="lbl">累计登记</div><div class="bg-ic">📋</div></div>
+    <div class="stat-card"><div class="num o">${stats.newc}</div><div class="lbl">待联系</div><div class="bg-ic">🔔</div></div>
+    <div class="stat-card"><div class="num g">${stats.signed}</div><div class="lbl">已签约</div><div class="bg-ic">🤝</div></div>
+    <div class="stat-card"><div class="num b">${stats.upcoming}</div><div class="lbl">待办婚礼</div><div class="bg-ic">💒</div></div>`;
+  const recent=regs.slice(-5).reverse();
+  const rl=document.getElementById('recentList');
+  if(!recent.length){rl.innerHTML=`<div style="padding:30px;text-align:center;color:#bbb;font-size:13px">暂无登记记录，快去邀请新人填写吧～</div>`;return}
+  rl.innerHTML=recent.map(r=>`
+    <div class="recent-item" onclick="openDetail('${r.id}')">
+      <div class="av">${(r.groomName||r.brideName||'?').slice(0,1)}</div>
+      <div class="ri-mid">
+        <div class="ri-name">${r.groomName||'先生'} & ${r.brideName||'女士'}</div>
+        <div class="ri-sub">${r.weddingDate||'婚期待定'} · ${r.venue||'场地待定'}</div>
+      </div>
+      <div class="ri-right"><span class="badge ${STATUS[r.status].cls}">${STATUS[r.status].label}</span></div>
+    </div>`).join('');
+}
+
+/* ========== Register Form ========== */
+function renderForm(){
+  renderSteps();
+  renderStepContent();
+  const isLast=curStep===STEPS.length-1;
+  document.getElementById('prevBtn').style.display=curStep>0?'block':'none';
+  document.getElementById('nextBtn').textContent=isLast?'提交登记':'下一步';
+}
+function renderSteps(){
+  document.getElementById('stepsBar').innerHTML=STEPS.map((s,i)=>{
+    const cls=i<curStep?'done':(i===curStep?'active':'');
+    return `<div class="st ${cls}"><div class="dot">${i<curStep?'✓':i+1}</div>${i<STEPS.length-1?'<div class="bar"></div>':''}</div>`
+  }).join('');
+}
+function readForm(){
+  document.querySelectorAll('#formBody [name]').forEach(el=>{
+    if(el.type==='checkbox'){return}
+    form[el.name]=el.value.trim();
+  });
+  // chips
+  document.querySelectorAll('#formBody .chip-group[data-field]').forEach(cg=>{
+    form[cg.dataset.field]=cg.dataset.multi?[...cg.querySelectorAll('.chip.on')].map(c=>c.dataset.val):cg.querySelector('.chip.on')?.dataset.val||'';
+  });
+  document.querySelectorAll('#formBody .opt-grid[data-field]').forEach(og=>{
+    form[og.dataset.field]=og.querySelector('.opt-card.on')?.dataset.val||'';
+  });
+  saveDraft();
+}
+function renderStepContent(){
+  const s=STEPS[curStep];
+  let html=`<div class="form-card"><h3>第${curStep+1}步 · ${s.title}</h3><div class="fc-desc">${s.desc}</div>`;
+  if(curStep===0){
+    html+=`
+    <div class="two-col">
+      <div class="field"><label>新郎姓名 <span class="req">*</span></label><input name="groomName" value="${form.groomName||''}" placeholder="如：张伟"></div>
+      <div class="field"><label>新娘姓名 <span class="req">*</span></label><input name="brideName" value="${form.brideName||''}" placeholder="如：李娜"></div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>新郎手机 <span class="req">*</span></label><input name="groomPhone" type="tel" value="${form.groomPhone||''}" placeholder="11位手机号"></div>
+      <div class="field"><label>新娘手机 <span class="req">*</span></label><input name="bridePhone" type="tel" value="${form.bridePhone||''}" placeholder="请填写"></div>
+    </div>
+    <div class="field"><label>微信号</label><input name="wechat" value="${form.wechat||''}" placeholder="便于管家添加沟通"></div>
+    <div class="field"><label>常住城市 <span class="req">*</span></label><input name="city" value="${form.city||''}" placeholder="如：杭州"></div>`;
+  }
+  if(curStep===1){
+    html+=`
+    <div class="field"><label>婚期 <span class="req">*</span></label><input name="weddingDate" type="date" value="${form.weddingDate||''}"></div>
+    <div class="field"><label>新郎家婚房地址（城市+小区名称+门牌号）</label><input name="groomAddress" value="${form.groomAddress||''}" placeholder="如：杭州市西湖区龙湖天街1幢1单元1001室"></div>
+    <div class="field"><label>新娘家婚房地址（城市+小区名称+门牌号）</label><input name="brideAddress" value="${form.brideAddress||''}" placeholder="如：杭州市拱墅区万科中城汇3幢2单元506室"></div>
+    <div class="field"><label>婚礼举办城市</label><input name="weddingCity" value="${form.weddingCity||''}" placeholder="如与常住地不同请填写"></div>
+    <div class="field"><label>婚宴酒店 / 场地</label><input name="venue" value="${form.venue||''}" placeholder="如：杭州西湖国宾馆"></div>
+    <div class="field"><label>婚宴时段</label>
+      <div class="chip-group" data-field="session">
+        ${['午宴','晚宴','午+晚','待定'].map(v=>`<div class="chip ${form.session===v?'on':''}" data-val="${v}" onclick="toggleChip(this)">${v}</div>`).join('')}
+      </div>
+    </div>`;
+  }
+  if(curStep===2){
+    html+=`
+    <div class="two-col">
+      <div class="field"><label>预计桌数</label><input name="tables" type="number" value="${form.tables||''}" placeholder="如：20"></div>
+      <div class="field"><label>预计宾客人数</label><input name="guests" type="number" value="${form.guests||''}" placeholder="如：200"></div>
+    </div>
+    <div class="field"><label>餐标预算</label><input name="mealBudget" value="${form.mealBudget||''}" placeholder="如：3000元/桌"></div>
+    <div class="field"><label>主持预算</label><input name="hostBudget" value="${form.hostBudget||''}" placeholder="如：3000元"></div>
+    <div class="field"><label>摄影预算</label><input name="photoBudget" value="${form.photoBudget||''}" placeholder="如：5000元"></div>
+    <div class="field"><label>摄像预算</label><input name="videoBudget" value="${form.videoBudget||''}" placeholder="如：5000元"></div>
+    <div class="field"><label>化妆预算</label><input name="makeupBudget" value="${form.makeupBudget||''}" placeholder="如：3000元"></div>
+    <div class="field"><label>宴会布置预算</label><input name="decorBudget" value="${form.decorBudget||''}" placeholder="如：8万"></div>`;
+  }
+  if(curStep===3){
+    html+=`
+    <div class="field"><label>婚礼形式 <span class="req">*</span></label>
+      <div class="opt-grid" data-field="weddingType">
+        ${[['chinese','中式婚礼','🏮'],['western','西式婚礼','⛪'],['outdoor','户外草坪','🌿'],['church','婚礼堂婚礼','🕊️'],['banquet','酒店婚宴','🥂'],['mixed','混搭风格','🎨']].map(([v,t,ic])=>`<div class="opt-card ${form.weddingType===v?'on':''}" data-val="${v}" onclick="toggleOpt(this)"><div class="oc-ic">${ic}</div><div class="oc-tx">${t}</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="field"><label>喜欢的色调</label>
+      <div class="chip-group" data-field="colorTheme" data-multi="1">
+        ${['香槟金','玫瑰粉','星空蓝','森系绿','复古红','纯洁白','莫兰迪','撞色'].map(v=>`<div class="chip ${(form.colorTheme||[]).includes(v)?'on':''}" data-val="${v}" onclick="toggleChip(this)">${v}</div>`).join('')}
+      </div>
+    </div>
+    <div class="field"><label>风格关键词</label><input name="styleKeywords" value="${form.styleKeywords||''}" placeholder="如：浪漫、简约、森系、轻奢"></div>`;
+  }
+  if(curStep===4){
+    html+=`
+    <div class="field"><label>需要管家安排的服务（多选）</label>
+      <div class="chip-group" data-field="services" data-multi="1">
+        ${['婚礼策划','司仪主持','化妆造型','摄影摄像','婚车租赁','花艺布置','灯光音响','婚纱礼服','伴娘伴郎服','喜糖请柬','婚房布置','接亲流程','甜品台'].map(v=>`<div class="chip ${(form.services||[]).includes(v)?'on':''}" data-val="${v}" onclick="toggleChip(this)">${v}</div>`).join('')}
+      </div>
+    </div>
+    <div class="field"><label>其他服务需求</label><textarea name="otherNeeds" placeholder="如有特殊服务需求请说明">${form.otherNeeds||''}</textarea></div>`;
+  }
+  if(curStep===5){
+    html+=`
+    <div class="field"><label>特殊需求 / 备注</label><textarea name="remarks" placeholder="如：长辈禁忌、宗教习俗、特殊仪式环节等">${form.remarks||''}</textarea></div>
+    <div class="field"><label>您从哪里了解到我们？</label>
+      <div class="chip-group" data-field="source">
+        ${['朋友推荐','微信朋友圈','小红书','抖音','大众点评','婚博会','其他'].map(v=>`<div class="chip ${form.source===v?'on':''}" data-val="${v}" onclick="toggleChip(this)">${v}</div>`).join('')}
+      </div>
+    </div>
+    <div class="field"><label>期望管家联系时间</label><input name="contactTime" value="${form.contactTime||''}" placeholder="如：工作日晚间 / 周末上午"></div>`;
+  }
+  if(curStep===6){
+    html+=`
+    <p style="font-size:12px;color:var(--rose);margin-bottom:12px;line-height:1.6;padding:10px;background:var(--rose-soft);border-radius:8px">这些问题会让我更加了解你们。请放松心态，和新郎/新娘一起完成，没有标准答案。</p>
+    <div class="field"><label>1. 描述你们梦想中的婚礼</label><textarea name="dreamWedding" placeholder="分为两个方面：一是你们自己感受到的，二是来宾感受到的。">${form.dreamWedding||''}</textarea></div>
+    <div class="field"><label>2. 宾客构成</label><textarea name="guestComposition" placeholder="新人同事同学朋友几桌 / 两家亲戚长辈几桌 / 父母同事朋友生意伙伴几桌">${form.guestComposition||''}</textarea></div>
+    <div class="field"><label>3. 迎亲与敬茶仪式</label>
+      <div class="chip-group" data-field="teaStyle">
+        ${['跪敬','鞠躬敬','随习俗','待沟通'].map(v=>`<div class="chip ${form.teaStyle===v?'on':''}" data-val="${v}" onclick="toggleChip(this)">${v}</div>`).join('')}
+      </div>
+      <div class="hint">白天迎亲敬茶仪式的氛围偏好</div></div>
+    <div class="field"><label>4. 摄影摄像与化妆风格</label><textarea name="photoStyle" placeholder="纪实类还是时尚类？拍摄时需要怎样的氛围？婚纱礼服风格偏好？">${form.photoStyle||''}</textarea></div>
+    <div class="field"><label>5. 主持人风格 & 进场效果</label><textarea name="hostStyle" placeholder="希望主持人的风格是怎样的？人像空景拍摄和进场仪式呈现什么效果？">${form.hostStyle||''}</textarea></div>
+    <div class="field"><label>6. 外景拍摄喜好</label><textarea name="outdoorPref" placeholder="下午外景拍摄时喜欢的音乐？喜欢的软饮料、零食、茶类（有品牌最好）">${form.outdoorPref||''}</textarea></div>
+    <div class="field"><label>7. 最喜欢拍摄的婚纱造型</label><input name="favDress" value="${form.favDress||''}" placeholder="当天所有婚纱礼服，哪几件造型最喜欢拍摄？"></div>
+    <div class="field"><label>8. 想对父母和亲友说的话</label><textarea name="wordsToFamily" placeholder="想在婚礼上向父母和亲友表达什么？">${form.wordsToFamily||''}</textarea></div>
+    <div class="field"><label>9. 在朋友眼中你们是什么样的人</label><textarea name="friendImpression" placeholder="也请互相评价彼此——他/她是一个什么样的人？特点、爱好、小细节都可以描述">${form.friendImpression||''}</textarea></div>
+    <div class="field"><label>10. 家庭情况</label><textarea name="familyInfo" placeholder="爸爸妈妈是什么样的人？双方家庭是否有特殊情况（如健康方面）？有没有民族/地域方面的特殊婚礼习俗或禁忌？">${form.familyInfo||''}</textarea></div>
+    <div class="field"><label>11. 婚礼决策主导者</label>
+      <div class="chip-group" data-field="decisionMaker">
+        ${['新人自己','父母主理','共同商量'].map(v=>`<div class="chip ${form.decisionMaker===v?'on':''}" data-val="${v}" onclick="toggleChip(this)">${v}</div>`).join('')}
+      </div></div>
+    <div class="field"><label>12. 需要特别感谢的人</label><input name="specialThanks" value="${form.specialThanks||''}" placeholder="除了父母之外，有没有需要特意感谢的长辈或朋友？"></div>
+    <div class="field"><label>13. 别人婚礼上不喜欢的环节</label><textarea name="dislikeElements" placeholder="参加或看到的婚礼中，不喜欢的环节、元素或状态，不希望出现在自己的婚礼上">${form.dislikeElements||''}</textarea></div>`;
+  }
+  html+='</div>';
+  document.getElementById('formBody').innerHTML=html;
+}
+function toggleChip(el){
+  const cg=el.closest('.chip-group');
+  if(!cg){el.classList.toggle('on');readForm();return}
+  if(cg.dataset.multi){
+    el.classList.toggle('on');
+    readForm();
+  }else{
+    cg.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+    el.classList.add('on');
+    readForm();
+  }
+}
+function toggleOpt(el){
+  const og=el.closest('.opt-grid');
+  og.querySelectorAll('.opt-card').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  readForm();
+}
+function validateStep(){
+  readForm();
+  if(curStep===0){
+    if(!form.groomName)return toast('请填写新郎姓名');
+    if(!form.brideName)return toast('请填写新娘姓名');
+    if(!form.groomPhone)return toast('请填写新郎手机号');
+    if(!/^1\d{10}$/.test(form.groomPhone))return toast('新郎手机号格式不正确');
+    if(!form.bridePhone)return toast('请填写新娘手机号');
+    if(!/^1\d{10}$/.test(form.bridePhone))return toast('新娘手机号格式不正确');
+    if(!form.city)return toast('请填写常住城市');
+  }
+  if(curStep===1){if(!form.weddingDate)return toast('请选择婚期')}
+  if(curStep===2){if(!form.tables && !form.guests)return toast('请至少填写桌数或宾客人数')}
+  if(curStep===3){if(!form.weddingType)return toast('请选择婚礼形式')}
+  return true;
+}
+function prevStep(){if(curStep>0){curStep--;renderForm();window.scrollTo(0,0)}}
+function nextStep(){
+  if(!validateStep())return;
+  if(curStep<STEPS.length-1){curStep++;renderForm();window.scrollTo(0,0)}
+  else{submitForm()}
+}
+async function submitForm(){
+  readForm();
+  const reg=Object.assign({},form,{
+    id:'R'+Date.now(),
+    createdAt:new Date().toISOString(),
+    status:'new'
+  });
+  await addRegToCloud(reg);
+  localStorage.removeItem(DRAFT_KEY);
+  go('success');
+}
+
+/* ========== Planner ========== */
+function renderPlanner(){
+  const regs=getRegs();
+  const now=new Date();
+  document.getElementById('plannerDate').textContent=now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日';
+  const counts={total:regs.length,new:0,contacted:0,signed:0,won:0,lost:0};
+  regs.forEach(r=>{if(counts[r.status]!==undefined)counts[r.status]++});
+  document.getElementById('plannerStats').innerHTML=`
+    <div class="ps"><div class="n">${counts.total}</div><div class="l">全部</div></div>
+    <div class="ps"><div class="n" style="color:#7fd0ff">${counts.new}</div><div class="l">新登记</div></div>
+    <div class="ps"><div class="n" style="color:#ffd27a">${counts.contacted}</div><div class="l">已联系</div></div>
+    <div class="ps"><div class="n" style="color:#7fdca0">${counts.signed+counts.won}</div><div class="l">已签约</div></div>`;
+  const filters=[['all','全部'],['new','新登记'],['contacted','已联系'],['signed','已签约'],['won','已成交'],['lost','已流失']];
+  document.getElementById('filterBar').innerHTML=filters.map(([v,l])=>`<div class="fb ${curFilter===v?'on':''}" onclick="setFilter('${v}')">${l}</div>`).join('');
+  renderRegList();
+}
+function setFilter(v){curFilter=v;renderPlanner()}
+function renderRegList(){
+  const kw=(document.getElementById('searchInput').value||'').trim().toLowerCase();
+  let regs=getRegs().reverse();
+  if(curFilter!=='all')regs=regs.filter(r=>r.status===curFilter);
+  if(kw)regs=regs.filter(r=>[r.groomName,r.brideName,r.groomPhone,r.bridePhone,r.venue,r.weddingCity].some(x=>(x||'').toLowerCase().includes(kw)));
+  const list=document.getElementById('regList');
+  if(!regs.length){list.innerHTML=`<div class="empty"><div class="em-ic">🗂️</div><p>暂无符合条件的登记记录</p></div>`;return}
+  list.innerHTML=regs.map(r=>{
+    const d=r.createdAt?new Date(r.createdAt):null;
+    const dStr=d?(d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'):'';
+    return `<div class="reg-card" onclick="openDetail('${r.id}')">
+      <div class="rc-top">
+        <div class="rc-name">${r.groomName||'先生'} <span style="color:#ddd;font-weight:300">&</span> ${r.brideName||'女士'}</div>
+        <span class="badge ${STATUS[r.status].cls}">${STATUS[r.status].label}</span>
+      </div>
+      <div class="rc-info">
+        <span>💒 ${r.weddingDate||'婚期待定'}</span>
+        <span>📍 ${r.venue||r.weddingCity||'场地待定'}</span>
+        ${r.tables?`<span>🍽 ${r.tables}桌</span>`:''}
+        ${r.mealBudget?`<span>🍽 餐标 ${r.mealBudget}</span>`:''}
+        ${r.decorBudget?`<span>🎪 布置 ${r.decorBudget}</span>`:''}
+      </div>
+      <div class="rc-foot">
+        <span class="rc-date">📞 ${r.groomPhone||'-'} · 登记 ${dStr}</span>
+        <span style="color:var(--rose);font-size:12px;font-weight:600">详情 ›</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ========== Detail Sheet ========== */
+function openDetail(id){
+  const regs=getRegs();
+  const r=regs.find(x=>x.id===id);
+  if(!r)return;
+  curDetailId=id;
+  curStatusPick=r.status;
+  const typeMap={chinese:'中式婚礼',western:'西式婚礼',outdoor:'户外草坪',church:'婚礼堂婚礼',banquet:'酒店婚宴',mixed:'混搭风格'};
+  document.getElementById('detTitle').textContent=`${r.groomName||''} & ${r.brideName||''}`;
+  document.getElementById('detBody').innerHTML=`
+    <div class="det-section">
+      <h4>📋 跟进状态</h4>
+      <div class="status-pick" id="statusPick">
+        ${Object.entries(STATUS).map(([k,v])=>`<div class="sp ${curStatusPick===k?'on':''}" data-val="${k}" onclick="pickStatus(this)">${v.label}</div>`).join('')}
+      </div>
+      ${r.followUpDate?`<div style="margin-top:10px;font-size:12px;color:var(--ink-soft)">下次跟进：${r.followUpDate}</div>`:''}
+    </div>
+    <div class="det-section">
+      <h4>👤 新人基本信息</h4>
+      <div class="det-row"><div class="dk">新郎</div><div class="dv">${r.groomName||'-'}　${r.groomPhone||''}</div></div>
+      <div class="det-row"><div class="dk">新娘</div><div class="dv">${r.brideName||'-'}　${r.bridePhone||''}</div></div>
+      <div class="det-row"><div class="dk">微信</div><div class="dv">${r.wechat||'-'}</div></div>
+      <div class="det-row"><div class="dk">常住城市</div><div class="dv">${r.city||'-'}</div></div>
+    </div>
+    <div class="det-section">
+      <h4>💒 婚礼概况</h4>
+      <div class="det-row"><div class="dk">婚期</div><div class="dv">${r.weddingDate||'待定'}</div></div>
+      <div class="det-row"><div class="dk">新郎家婚房地址</div><div class="dv">${r.groomAddress||'未填写'}</div></div>
+      <div class="det-row"><div class="dk">新娘家婚房地址</div><div class="dv">${r.brideAddress||'未填写'}</div></div>
+      <div class="det-row"><div class="dk">举办城市</div><div class="dv">${r.weddingCity||r.city||'-'}</div></div>
+      <div class="det-row"><div class="dk">婚宴场地</div><div class="dv">${r.venue||'待定'}</div></div>
+      <div class="det-row"><div class="dk">婚宴时段</div><div class="dv">${r.session||'-'}</div></div>
+    </div>
+    <div class="det-section">
+      <h4>👥 宾客与预算</h4>
+      <div class="det-row"><div class="dk">预计桌数</div><div class="dv">${r.tables||'-'}</div></div>
+      <div class="det-row"><div class="dk">宾客人数</div><div class="dv">${r.guests||'-'}</div></div>
+      <div class="det-row"><div class="dk">餐标预算</div><div class="dv" style="color:var(--rose);font-weight:700">${r.mealBudget||'-'}</div></div>
+      <div class="det-row"><div class="dk">主持预算</div><div class="dv" style="color:var(--rose)">${r.hostBudget||'-'}</div></div>
+      <div class="det-row"><div class="dk">摄影预算</div><div class="dv" style="color:var(--rose)">${r.photoBudget||'-'}</div></div>
+      <div class="det-row"><div class="dk">摄像预算</div><div class="dv" style="color:var(--rose)">${r.videoBudget||'-'}</div></div>
+      <div class="det-row"><div class="dk">化妆预算</div><div class="dv" style="color:var(--rose)">${r.makeupBudget||'-'}</div></div>
+      <div class="det-row"><div class="dk">宴会布置预算</div><div class="dv" style="color:var(--rose)">${r.decorBudget||'-'}</div></div>
+    </div>
+    <div class="det-section">
+      <h4>🎨 风格偏好</h4>
+      <div class="det-row"><div class="dk">婚礼形式</div><div class="dv">${typeMap[r.weddingType]||'-'}</div></div>
+      <div class="det-row"><div class="dk">色调</div><div class="dv"><div class="det-tags">${(r.colorTheme||[]).map(t=>`<span class="dt">${t}</span>`).join('')||'-'}</div></div></div>
+      <div class="det-row"><div class="dk">风格关键词</div><div class="dv">${r.styleKeywords||'-'}</div></div>
+    </div>
+    <div class="det-section">
+      <h4>🤝 服务需求</h4>
+      <div class="det-row"><div class="dk">需求项目</div><div class="dv"><div class="det-tags">${(r.services||[]).map(t=>`<span class="dt">${t}</span>`).join('')||'-'}</div></div></div>
+      ${r.otherNeeds?`<div class="det-row"><div class="dk">其他需求</div><div class="dv">${r.otherNeeds}</div></div>`:''}
+    </div>
+    ${(r.remarks||r.source||r.contactTime)?`<div class="det-section">
+      <h4>📝 补充信息</h4>
+      ${r.remarks?`<div class="det-row"><div class="dk">特殊备注</div><div class="dv">${r.remarks}</div></div>`:''}
+      ${r.source?`<div class="det-row"><div class="dk">来源</div><div class="dv">${r.source}</div></div>`:''}
+      ${r.contactTime?`<div class="det-row"><div class="dk">联系时间</div><div class="dv">${r.contactTime}</div></div>`:''}
+    </div>`:''}
+    ${(r.dreamWedding||r.guestComposition||r.teaStyle||r.photoStyle||r.hostStyle||r.outdoorPref||r.favDress||r.wordsToFamily||r.friendImpression||r.familyInfo||r.decisionMaker||r.specialThanks||r.dislikeElements)?`<div class="det-section">
+      <h4>💡 深度了解</h4>
+      ${r.dreamWedding?`<div class="det-row"><div class="dk">梦想婚礼</div><div class="dv">${r.dreamWedding}</div></div>`:''}
+      ${r.guestComposition?`<div class="det-row"><div class="dk">宾客构成</div><div class="dv">${r.guestComposition}</div></div>`:''}
+      ${r.teaStyle?`<div class="det-row"><div class="dk">敬茶方式</div><div class="dv">${r.teaStyle}</div></div>`:''}
+      ${r.photoStyle?`<div class="det-row"><div class="dk">摄影造型</div><div class="dv">${r.photoStyle}</div></div>`:''}
+      ${r.hostStyle?`<div class="det-row"><div class="dk">主持风格</div><div class="dv">${r.hostStyle}</div></div>`:''}
+      ${r.outdoorPref?`<div class="det-row"><div class="dk">外景喜好</div><div class="dv">${r.outdoorPref}</div></div>`:''}
+      ${r.favDress?`<div class="det-row"><div class="dk">最爱造型</div><div class="dv">${r.favDress}</div></div>`:''}
+      ${r.wordsToFamily?`<div class="det-row"><div class="dk">致亲友的话</div><div class="dv">${r.wordsToFamily}</div></div>`:''}
+      ${r.friendImpression?`<div class="det-row"><div class="dk">朋友印象</div><div class="dv">${r.friendImpression}</div></div>`:''}
+      ${r.familyInfo?`<div class="det-row"><div class="dk">家庭情况</div><div class="dv">${r.familyInfo}</div></div>`:''}
+      ${r.decisionMaker?`<div class="det-row"><div class="dk">决策主导</div><div class="dv">${r.decisionMaker}</div></div>`:''}
+      ${r.specialThanks?`<div class="det-row"><div class="dk">特别感谢</div><div class="dv">${r.specialThanks}</div></div>`:''}
+      ${r.dislikeElements?`<div class="det-row"><div class="dk">不喜欢的</div><div class="dv">${r.dislikeElements}</div></div>`:''}
+    </div>`:''}
+    <div class="det-section">
+      <h4>💬 管家备注</h4>
+      <textarea name="plannerNotes" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px;min-height:70px;font-size:13px;outline:none" placeholder="记录沟通要点、客户偏好、下一步计划..." onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='var(--line)'">${r.plannerNotes||''}</textarea>
+      <div class="field" style="margin-top:10px">
+        <label style="font-size:12px">下次跟进日期</label>
+        <input name="followUpDate" type="date" value="${r.followUpDate||''}" style="border:1.5px solid var(--line);border-radius:10px;padding:9px;font-size:13px">
+      </div>
+    </div>
+    <div style="font-size:11px;color:#bbb;text-align:center;padding:6px">登记时间：${r.createdAt?new Date(r.createdAt).toLocaleString('zh-CN'):''}</div>
+  `;
+  document.getElementById('sheetMask').classList.add('show');
+  document.getElementById('detailSheet').classList.add('show');
+}
+function pickStatus(el){
+  document.querySelectorAll('#statusPick .sp').forEach(s=>s.classList.remove('on'));
+  el.classList.add('on');
+  curStatusPick=el.dataset.val;
+}
+async function saveStatus(){
+  if(!curDetailId)return;
+  const regs=getRegs();
+  const r=regs.find(x=>x.id===curDetailId);
+  if(!r)return;
+  r.status=curStatusPick;
+  r.plannerNotes=document.querySelector('#detBody [name=plannerNotes]')?.value||'';
+  r.followUpDate=document.querySelector('#detBody [name=followUpDate]')?.value||'';
+  await saveRegsToCloud(regs);
+  toast('已保存');
+  closeSheet();
+  renderRegList();
+}
+function callReg(){
+  const regs=getRegs();
+  const r=regs.find(x=>x.id===curDetailId);
+  if(!r||!r.groomPhone){toast('暂无联系电话');return}
+  window.location.href='tel:'+r.groomPhone;
+}
+function closeSheet(){
+  document.getElementById('sheetMask').classList.remove('show');
+  document.getElementById('detailSheet').classList.remove('show');
+  curDetailId=null;
+}
+
+/* ========== Role ========== */
+function setRole(r){
+  if(r==='planner'){
+    // switching to planner always requires password
+    showPwd('管理员登录','请输入管理员密码进入后台',()=>{
+      sessionStorage.setItem('wedding_admin_auth','1');
+      setAppRole('planner');
+      go('planner');
+      updateAdminUI();
+    });
+    return;
+  }
+  // switching to couple is free
+  sessionStorage.removeItem('wedding_admin_auth');
+  setAppRole('couple');
+  go('home');
+  updateAdminUI();
+}
+function setAppRole(r){
+  curRole=r;
+  sessionStorage.setItem('wedding_role',r);
+  document.getElementById('roleCouple').classList.toggle('on',r==='couple');
+  document.getElementById('rolePlanner').classList.toggle('on',r==='planner');
+  document.querySelector('.app').className='app role-'+r;
+  // update hero
+  if(r==='couple'){
+    document.getElementById('greetTitle').innerHTML='让每一场婚礼<br>都被温柔以待';
+    document.getElementById('greetSub').textContent='填写咨询登记表，周礼婚礼管家将在24小时内与您联系。';
+    document.getElementById('heroMainCta').textContent='📝 开始登记';
+    document.getElementById('heroMainCta').onclick=function(){go('register')};
+  }else{
+    document.getElementById('greetTitle').innerHTML='周礼婚礼管家<br>工作台';
+    document.getElementById('greetSub').textContent='客户登记管理、进度跟进、数据导出，一站式统筹服务。';
+    document.getElementById('heroMainCta').textContent='📋 客户列表';
+    document.getElementById('heroMainCta').onclick=function(){go('planner')};
+  }
+  // update tabbar active
+  document.querySelectorAll('.tabbar .tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.tabbar .tab[data-view="'+(r==='planner'?'planner':'home')+'"]').classList.add('active');
+}
+
+/* ========== Data Utils ========== */
+function exportData(){
+  const regs=getRegs();
+  if(!regs.length){toast('暂无数据可导出');return}
+  // CSV export
+  const headers=['登记时间','状态','新郎','新郎手机','新娘','新娘手机','微信','常住城市','婚期','新郎家婚房地址','新娘家婚房地址','举办城市','婚宴场地','时段','桌数','宾客','餐标预算','主持预算','摄影预算','摄像预算','化妆预算','宴会布置预算','婚礼形式','色调','风格关键词','服务需求','其他需求','备注','来源','联系时间','梦想婚礼','宾客构成','敬茶方式','摄影造型','主持风格','外景喜好','最爱造型','致亲友的话','朋友印象','家庭情况','决策主导','特别感谢','不喜欢的','管家备注','跟进日期'];
+  const typeMap={chinese:'中式',western:'西式',outdoor:'户外草坪',church:'婚礼堂',banquet:'酒店婚宴',mixed:'混搭'};
+  const lines=[headers.join(',')];
+  regs.forEach(r=>{
+    lines.push([
+      r.createdAt||'',STATUS[r.status].label,r.groomName||'',r.groomPhone||'',r.brideName||'',r.bridePhone||'',r.wechat||'',r.city||'',
+      r.weddingDate||'',r.groomAddress||'',r.brideAddress||'',r.weddingCity||'',r.venue||'',r.session||'',r.tables||'',r.guests||'',r.mealBudget||'',r.hostBudget||'',r.photoBudget||'',r.videoBudget||'',r.makeupBudget||'',r.decorBudget||'',
+      typeMap[r.weddingType]||'',(r.colorTheme||[]).join('/'),r.styleKeywords||'',(r.services||[]).join('/'),r.otherNeeds||'',r.remarks||'',r.source||'',r.contactTime||'',
+      r.dreamWedding||'',r.guestComposition||'',r.teaStyle||'',r.photoStyle||'',r.hostStyle||'',r.outdoorPref||'',r.favDress||'',r.wordsToFamily||'',r.friendImpression||'',r.familyInfo||'',r.decisionMaker||'',r.specialThanks||'',r.dislikeElements||'',
+      (r.plannerNotes||'').replace(/[\n,]/g,' '),r.followUpDate||''
+    ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+  });
+  const csv='\ufeff'+lines.join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='周礼婚礼管家登记数据_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  toast('已导出 '+regs.length+' 条记录');
+}
+function importData(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='.json';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const rd=new FileReader();
+    rd.onload=async ev=>{
+      try{const d=JSON.parse(ev.target.result);
+        if(Array.isArray(d)){await saveRegsToCloud(d);toast('已导入 '+d.length+' 条');renderHome()}
+        else toast('文件格式不正确');
+      }catch(err){toast('导入失败')}
+    };
+    rd.readAsText(f);
+  };
+  inp.click();
+}
+async function loadDemo(){
+  if(!confirm('将载入 3 条演示数据，不会影响已有记录。确定？'))return;
+  const demo=[
+    {id:'D1',createdAt:new Date(Date.now()-86400000*3).toISOString(),status:'contacted',groomName:'陈浩',groomPhone:'13800138001',brideName:'林小雅',bridePhone:'13900139001',wechat:'chenhao_wed',city:'杭州',weddingDate:'2026-10-18',groomAddress:'杭州市西湖区龙井路1号',brideAddress:'杭州市拱墅区湖墅南路99号',weddingCity:'杭州',venue:'杭州西子湖四季酒店',session:'晚宴',tables:25,guests:250,mealBudget:'6888元/桌',hostBudget:'5000元',photoBudget:'6000元',videoBudget:'6000元',makeupBudget:'3000元',decorBudget:'12万',weddingType:'outdoor',colorTheme:['香槟金','森系绿'],styleKeywords:'浪漫、自然、轻奢',services:['婚礼策划','司仪主持','化妆造型','摄影摄像','花艺布置'],otherNeeds:'',remarks:'希望有户外草坪仪式',source:'朋友推荐',contactTime:'工作日晚间',plannerNotes:'客户预算充足，对花艺要求高，已发送方案初稿',followUpDate:'2026-07-25'},
+    {id:'D2',createdAt:new Date(Date.now()-86400000*1).toISOString(),status:'new',groomName:'王磊',groomPhone:'13700137002',brideName:'赵敏',bridePhone:'',wechat:'zhaomin_22',city:'杭州',weddingDate:'2027-01-06',groomAddress:'',brideAddress:'',weddingCity:'',venue:'待定',session:'午宴',tables:15,guests:150,mealBudget:'3888元/桌',hostBudget:'2000元',photoBudget:'3000元',videoBudget:'3000元',makeupBudget:'1500元',decorBudget:'5万',weddingType:'chinese',colorTheme:['复古红','香槟金'],styleKeywords:'传统、喜庆',services:['婚礼策划','司仪主持','婚车租赁','喜糖请柬'],otherNeeds:'',remarks:'长辈较多，注重传统礼仪',source:'小红书',contactTime:'周末上午',plannerNotes:'',followUpDate:''},
+    {id:'D3',createdAt:new Date(Date.now()-86400000*7).toISOString(),status:'signed',groomName:'刘洋',groomPhone:'13600136003',brideName:'周婷',bridePhone:'13500135003',wechat:'liuyang_zt',city:'上海',weddingDate:'2026-09-20',groomAddress:'',brideAddress:'',weddingCity:'上海',venue:'上海外滩茂悦大酒店',session:'午+晚',tables:30,guests:300,mealBudget:'8888元/桌',hostBudget:'8000元',photoBudget:'10000元',videoBudget:'10000元',makeupBudget:'5000元',decorBudget:'20万',weddingType:'banquet',colorTheme:['星空蓝','纯洁白'],styleKeywords:'大气、梦幻',services:['婚礼策划','司仪主持','化妆造型','摄影摄像','婚车租赁','花艺布置','灯光音响','婚纱礼服'],otherNeeds:'需要航拍',remarks:'',source:'婚博会',contactTime:'随时',plannerNotes:'已签约，定金已付，进入方案细化阶段',followUpDate:'2026-07-30'}
+  ];
+  await saveRegsToCloud([...getRegs(), ...demo]);
+  toast('已载入 3 条示例数据');
+  renderHome();
+}
+function clearDraft(){localStorage.removeItem(DRAFT_KEY);form={services:[],weddingType:''};toast('草稿已清空')}
+async function clearAll(){
+  showPwd('危险操作','清空全部数据需验证管理密码',async ()=>{
+    if(!confirm('⚠️ 确认清空全部登记数据？此操作不可恢复！'))return;
+    if(!confirm('再次确认：将永久删除所有新人登记记录，确定吗？'))return;
+    await saveRegsToCloud([]);
+    localStorage.removeItem(DRAFT_KEY);
+    toast('已清空全部数据');
+    renderHome();
+  });
+}
+
+/* ========== Init ========== */
+loadDraftIntoForm();
+// restore saved role & admin auth
+curRole=sessionStorage.getItem('wedding_role')||'couple';
+if(curRole==='planner'&&!isAdminAuth()){
+  // admin auth lost (e.g. new tab), fall back to couple
+  curRole='couple';
+  sessionStorage.removeItem('wedding_role');
+}
+document.querySelector('.app').className='app role-'+curRole;
+// update admin name in profile
+document.getElementById('adminProfName').textContent=getAdminName();
+updateAdminUI();
+// update hero based on role
+if(curRole==='planner'){
+  document.getElementById('greetTitle').innerHTML='周礼婚礼管家<br>工作台';
+  document.getElementById('greetSub').textContent='客户登记管理、进度跟进、数据导出，一站式统筹服务。';
+  document.getElementById('heroMainCta').textContent='📋 客户列表';
+  document.getElementById('heroMainCta').onclick=function(){go('planner')};
+}
+document.getElementById('roleCouple').classList.toggle('on',curRole==='couple');
+document.getElementById('rolePlanner').classList.toggle('on',curRole==='planner');
+document.querySelectorAll('.tabbar .tab').forEach(t=>t.classList.remove('active'));
+document.querySelector('.tabbar .tab[data-view="'+(curRole==='planner'?'planner':'home')+'"]').classList.add('active');
+(async function init(){
+  await loadRegsFromCloud();
+  renderHome();
+})();
+/* PWA: 注册 Service Worker 实现离线可用 + 可安装到桌面 */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      reg.addEventListener('updatefound',()=>{
+        const nw=reg.installing;
+        if(!nw)return;
+        nw.addEventListener('statechange',()=>{
+          if(nw.state==='activated'&&navigator.serviceWorker.controller){
+            location.reload();
+          }
+        });
+      });
+    }).catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
