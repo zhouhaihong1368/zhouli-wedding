@@ -4,3 +4,8 @@ data.json
 *.log
 .DS_Store
 apk-builder/
+cloudflared.exe
+cf-tunnel-*.log
+*.apk
+启动Cloudflare隧道.bat
+.workbuddy/
