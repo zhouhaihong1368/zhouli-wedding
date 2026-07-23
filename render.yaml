@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: zhouli-wedding
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: zhouli-wedding-db
+          property: connectionString
+      - key: ADMIN_PWD
+        value: "8888"
+      - key: PORT
+        value: "3000"
+
+databases:
+  - name: zhouli-wedding-db
+    plan: free
+    databaseName: zhouli_wedding
