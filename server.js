@@ -6,6 +6,7 @@ const PORT = process.env.PORT || 3000;
 const DATABASE_URL = process.env.DATABASE_URL;
 const ADMIN_PWD = process.env.ADMIN_PWD || '8888';
 const DATA_FILE = path.join(__dirname, 'data.json');
+const CONFIG_FILE = path.join(__dirname, 'config.json');
 
 // ===== 数据存储层：有 DATABASE_URL 用 PostgreSQL，否则用本地 JSON 文件 =====
 let pool = null;
@@ -58,6 +59,18 @@ async function addOne(reg) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(regs, null, 2), 'utf-8');
 }
 
+// ===== 配置存储（密码、管理员姓名，全设备共享）=====
+function getConfig() {
+  try { return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8')); }
+  catch (e) { return { pwd: ADMIN_PWD, adminName: '周海红' }; }
+}
+function setConfig(updates) {
+  const current = getConfig();
+  const updated = Object.assign(current, updates);
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(updated, null, 2), 'utf-8');
+  return updated;
+}
+
 // 批量替换
 async function batchReplace(regs) {
   if (pool) {
@@ -80,8 +93,6 @@ async function batchReplace(regs) {
   // JSON 文件模式
   fs.writeFileSync(DATA_FILE, JSON.stringify(regs, null, 2), 'utf-8');
 }
-
-// 解析请求 body
 function bodyParser(req) {
   return new Promise((resolve, reject) => {
     let body = '';
@@ -147,7 +158,20 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/verify-pwd') {
       if (req.method === 'POST') {
         const { password } = await bodyParser(req);
-        return json(res, 200, { ok: password === ADMIN_PWD });
+        const config = getConfig();
+        return json(res, 200, { ok: password === config.pwd });
+      }
+    }
+
+    if (url.pathname === '/api/config') {
+      if (req.method === 'GET') {
+        const config = getConfig();
+        return json(res, 200, config);
+      }
+      if (req.method === 'POST') {
+        const updates = await bodyParser(req);
+        const config = setConfig(updates);
+        return json(res, 200, { ok: true, config });
       }
     }
 

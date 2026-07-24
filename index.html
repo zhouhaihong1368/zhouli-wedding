@@ -278,10 +278,21 @@ button{cursor:pointer;border:none;background:none}
 .pwd-dialog .pd-btns .pd-submit:active{transform:scale(.97)}
 .pwd-dialog .pd-btns .pd-cancel{background:#f5f0ec;color:var(--ink-soft)}
 .pwd-row{display:flex;align-items:center;justify-content:space-between}
+
+/* ===== Connection Banner ===== */
+.conn-banner{background:#fff3cd;color:#856404;padding:8px 14px;font-size:12px;text-align:center;display:none;border-bottom:1px solid #ffeaa7}
+.conn-banner.show{display:block}
+.conn-banner.online{background:#e8f5ee;color:#2e7d32}
+.conn-banner .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.conn-banner .dot.off{background:#e89a3c}
+.conn-banner .dot.on{background:#4caf7d}
 </style>
 </head>
 <body>
 <div class="app" id="app">
+
+  <!-- 连接状态横幅 -->
+  <div class="conn-banner" id="connBanner"><span class="dot off"></span><span id="connText">正在连接服务器...</span></div>
 
   <!-- ============ 首页 ============ -->
   <div class="view active" id="view-home">
@@ -481,7 +492,8 @@ const STEPS=[
   {title:'补充信息',desc:'其他需求与来源'},
   {title:'深度了解',desc:'让我们真正了解你们'}
 ];
-const API_BASE='https://social-views-burn.loca.lt';
+const API_BASE='https://zhouli-wedding.onrender.com';
+const FETCH_HEADERS={'Content-Type':'application/json'};
 let curStep=0;
 let curRole='couple';
 let curFilter='all';
@@ -489,17 +501,36 @@ let curDetailId=null;
 let curStatusPick='new';
 let form={services:[],weddingType:''};
 let regsCache=null;
+let cloudOnline=false;
 
 /* ========== Cloud Storage ========== */
+function updateConnStatus(){
+  const banner=document.getElementById('connBanner');
+  const text=document.getElementById('connText');
+  if(!banner)return;
+  if(cloudOnline){
+    banner.className='conn-banner online show';
+    text.innerHTML='已连接服务器，数据实时同步';
+    banner.querySelector('.dot').className='dot on';
+  }else{
+    banner.className='conn-banner show';
+    text.innerHTML='未连接服务器！密码和数据仅保存在本设备，不会同步到其他设备';
+    banner.querySelector('.dot').className='dot off';
+  }
+}
 function getRegs(){return regsCache||[]}
 function setRegsCache(r){regsCache=r}
 async function loadRegsFromCloud(){
   try{
-    const res=await fetch(API_BASE+'/api/regs');
+    const res=await fetch(API_BASE+'/api/regs',{headers:FETCH_HEADERS});
     if(!res.ok)throw new Error('API error');
     regsCache=await res.json();
+    cloudOnline=true;
+    updateConnStatus();
     return regsCache;
   }catch(e){
+    cloudOnline=false;
+    updateConnStatus();
     // fallback to localStorage
     try{regsCache=JSON.parse(localStorage.getItem(STORE_KEY))||[]}catch(_){regsCache=[]}
     console.warn('云端加载失败，使用本地缓存:',e.message);
@@ -507,25 +538,36 @@ async function loadRegsFromCloud(){
   }
 }
 async function saveRegsToCloud(regs){
+  let saved=false;
   try{
-    await fetch(API_BASE+'/api/regs/batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(regs)});
-  }catch(e){console.warn('云端保存失败:',e.message)}
+    const res=await fetch(API_BASE+'/api/regs/batch',{method:'POST',headers:FETCH_HEADERS,body:JSON.stringify(regs)});
+    if(res.ok){saved=true;cloudOnline=true;}else{cloudOnline=false;}
+  }catch(e){cloudOnline=false;console.warn('云端保存失败:',e.message)}
+  updateConnStatus();
   // always cache locally
   try{localStorage.setItem(STORE_KEY,JSON.stringify(regs))}catch(_){}
   regsCache=regs;
+  if(!saved)toast('⚠️ 服务器未连接，数据仅保存在本地，其他设备无法同步');
+  return saved;
 }
 async function addRegToCloud(reg){
+  let saved=false;
   try{
-    const res=await fetch(API_BASE+'/api/regs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(reg)});
+    const res=await fetch(API_BASE+'/api/regs',{method:'POST',headers:FETCH_HEADERS,body:JSON.stringify(reg)});
     if(!res.ok)throw new Error('API error');
-    // reload from cloud
+    saved=true;
+    cloudOnline=true;
+    updateConnStatus();
     await loadRegsFromCloud();
   }catch(e){
+    cloudOnline=false;
+    updateConnStatus();
     // fallback: add locally
     const regs=getRegs();
     regs.push(reg);
     await saveRegsToCloud(regs);
   }
+  return saved;
 }
 function getDraft(){try{return JSON.parse(localStorage.getItem(DRAFT_KEY))||null}catch(e){return null}}
 function saveDraft(){localStorage.setItem(DRAFT_KEY,JSON.stringify(form))}
@@ -538,10 +580,36 @@ const ADMIN_DEFAULT_NAME='周海红';
 let pwdMode='verify';
 let pwdCallback=null;
 
-function getPwd(){return localStorage.getItem(PWD_KEY)||PWD_DEFAULT}
-function setPwd(v){localStorage.setItem(PWD_KEY,v)}
-function getAdminName(){return localStorage.getItem(ADMIN_NAME_KEY)||ADMIN_DEFAULT_NAME}
-function setAdminName(v){localStorage.setItem(ADMIN_NAME_KEY,v)}
+// ===== 服务端配置（密码、管理员姓名，全设备共享）=====
+let serverConfig={pwd:PWD_DEFAULT,adminName:ADMIN_DEFAULT_NAME};
+async function loadServerConfig(){
+  try{
+    const res=await fetch(API_BASE+'/api/config',{headers:FETCH_HEADERS});
+    if(res.ok){serverConfig=await res.json();cloudOnline=true;}
+    else{cloudOnline=false;}
+  }catch(e){
+    cloudOnline=false;
+    // 离线回退：用 localStorage
+    serverConfig={pwd:localStorage.getItem(PWD_KEY)||PWD_DEFAULT,adminName:localStorage.getItem(ADMIN_NAME_KEY)||ADMIN_DEFAULT_NAME};
+  }
+  updateConnStatus();
+}
+function getPwd(){return serverConfig.pwd||PWD_DEFAULT}
+function setPwd(v){
+  serverConfig.pwd=v;
+  fetch(API_BASE+'/api/config',{method:'POST',headers:FETCH_HEADERS,body:JSON.stringify({pwd:v})})
+    .then(res=>{if(res.ok){cloudOnline=true;}else{cloudOnline=false;toast('⚠️ 服务器未连接，密码仅在本设备生效，其他设备不同步')}updateConnStatus();})
+    .catch(()=>{cloudOnline=false;updateConnStatus();toast('⚠️ 服务器未连接，密码仅在本设备生效，其他设备不同步')});
+  localStorage.setItem(PWD_KEY,v)
+}
+function getAdminName(){return serverConfig.adminName||ADMIN_DEFAULT_NAME}
+function setAdminName(v){
+  serverConfig.adminName=v;
+  fetch(API_BASE+'/api/config',{method:'POST',headers:FETCH_HEADERS,body:JSON.stringify({adminName:v})})
+    .then(res=>{if(res.ok){cloudOnline=true;}else{cloudOnline=false;toast('⚠️ 服务器未连接，姓名仅在本设备生效')}updateConnStatus();})
+    .catch(()=>{cloudOnline=false;updateConnStatus();toast('⚠️ 服务器未连接，姓名仅在本设备生效')});
+  localStorage.setItem(ADMIN_NAME_KEY,v)
+}
 function isAdminAuth(){return sessionStorage.getItem('wedding_admin_auth')==='1'}
 
 /* ========== Navigation ========== */
@@ -642,7 +710,11 @@ function saveAdminSettings(){
   if(pwd)setPwd(pwd);
   document.getElementById('adminModal').classList.remove('show');
   updateAdminUI();
-  toast(pwd?'姓名和密码已更新':'姓名已更新');
+  if(cloudOnline){
+    toast(pwd?'姓名和密码已更新，所有设备同步':'姓名已更新，所有设备同步');
+  }else{
+    toast(pwd?'姓名和密码已更新（仅本设备）':'姓名已更新（仅本设备）');
+  }
 }
 function updateAdminUI(){
   const auth=isAdminAuth();
@@ -859,6 +931,9 @@ async function submitForm(){
   await addRegToCloud(reg);
   localStorage.removeItem(DRAFT_KEY);
   go('success');
+  if(!cloudOnline){
+    setTimeout(()=>toast('⚠️ 服务器未连接，登记数据仅保存在本设备，管家可能无法及时看到'),500);
+  }
 }
 
 /* ========== Planner ========== */
@@ -1158,8 +1233,19 @@ document.getElementById('rolePlanner').classList.toggle('on',curRole==='planner'
 document.querySelectorAll('.tabbar .tab').forEach(t=>t.classList.remove('active'));
 document.querySelector('.tabbar .tab[data-view="'+(curRole==='planner'?'planner':'home')+'"]').classList.add('active');
 (async function init(){
+  await loadServerConfig();
   await loadRegsFromCloud();
   renderHome();
+  updateAdminUI();
+  // 定时从云端刷新数据（每30秒），保持多设备同步
+  setInterval(async()=>{
+    if(cloudOnline){
+      await loadRegsFromCloud();
+      const activeView=document.querySelector('.view.active');
+      if(activeView&&activeView.id==='view-planner')renderRegList();
+      if(activeView&&activeView.id==='view-home'&&curRole==='planner')renderHome();
+    }
+  },30000);
 })();
 /* PWA: 注册 Service Worker 实现离线可用 + 可安装到桌面 */
 if('serviceWorker' in navigator){
