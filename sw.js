@@ -1,5 +1,6 @@
 // 婚礼管家 PWA Service Worker - 离线缓存
-const CACHE = 'wedding-planner-v2';
+// v3: 修复API缓存导致数据不同步的问题
+const CACHE = 'wedding-planner-v3';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {
@@ -19,6 +20,15 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const req = e.request;
+  const url = new URL(req.url);
+
+  // API 请求：永远走网络，不缓存
+  if (url.pathname.startsWith('/api/')) {
+    e.respondWith(fetch(req));
+    return;
+  }
+
+  // 页面导航：网络优先，失败时回退缓存
   if (req.mode === 'navigate' || req.destination === 'document') {
     e.respondWith(
       fetch(req).then(res => {
@@ -29,6 +39,8 @@ self.addEventListener('fetch', e => {
     );
     return;
   }
+
+  // 静态资源：缓存优先，回退网络
   e.respondWith(
     caches.match(req).then(r =>
       r || fetch(req).then(res => {
