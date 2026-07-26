@@ -286,9 +286,26 @@ button{cursor:pointer;border:none;background:none}
 .conn-banner .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
 .conn-banner .dot.off{background:#e89a3c}
 .conn-banner .dot.on{background:#4caf7d}
+/* 唤醒加载遮罩 */
+.wake-overlay{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#fdf6f0,#fff5f5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .4s}
+.wake-overlay.hide{opacity:0;pointer-events:none}
+.wake-spinner{width:48px;height:48px;border:4px solid #f5e0d0;border-top-color:#d96a7e;border-radius:50%;animation:wakespin .8s linear infinite}
+@keyframes wakespin{to{transform:rotate(360deg)}}
+.wake-title{font-size:18px;font-weight:700;color:#d96a7e}
+.wake-sub{font-size:13px;color:#b08976;text-align:center;max-width:280px;line-height:1.6}
+.wake-dots{font-size:20px;letter-spacing:4px}
+.wake-retry{font-size:12px;color:#c4a092;margin-top:4px}
 </style>
 </head>
 <body>
+<!-- 唤醒加载遮罩（Render休眠时显示） -->
+<div class="wake-overlay" id="wakeOverlay">
+  <div class="wake-spinner"></div>
+  <div class="wake-title">周礼婚礼管家</div>
+  <div class="wake-sub" id="wakeSub">正在唤醒服务，请稍候...</div>
+  <div class="wake-dots" id="wakeDots">●</div>
+  <div class="wake-retry" id="wakeRetry"></div>
+</div>
 <div class="app" id="app">
 
   <!-- 连接状态横幅 -->
@@ -496,6 +513,31 @@ const STEPS=[
 // 固定指向 Render 云端后端，所有设备访问同一份数据，不再依赖本地隧道
 const API_BASE='https://zhouli-wedding.onrender.com';
 const FETCH_HEADERS={'Content-Type':'application/json'};
+// ===== 带重试的 fetch（用于唤醒休眠的 Render）=====
+async function fetchWithRetry(url,options,{retries:retries=3,delay:delay=5000}={}){
+  for(let attempt=1;attempt<=retries;attempt++){
+    try{
+      const ctrl=new AbortController();
+      const timer=setTimeout(()=>ctrl.abort(),30000); // 30秒超时（Render唤醒可能需要40秒）
+      const res=await fetch(url,{...options,signal:ctrl.signal});
+      clearTimeout(timer);
+      if(res.ok)return res;
+      if(res.status>=500&&attempt<retries){
+        // 502/503 通常是Render正在唤醒，等一下重试
+        throw new Error('Server waking: '+res.status);
+      }
+      return res; // 4xx 等直接返回
+    }catch(e){
+      if(attempt>=retries)throw e;
+      // 更新唤醒提示
+      const sub=document.getElementById('wakeSub');
+      const retry=document.getElementById('wakeRetry');
+      if(sub)sub.textContent='服务正在唤醒，请稍候...';
+      if(retry)retry.textContent='第'+attempt+'次尝试，即将重试...';
+      await new Promise(r=>setTimeout(r,delay*attempt));
+    }
+  }
+}
 let curStep=0;
 let curRole='couple';
 let curFilter='all';
@@ -1295,8 +1337,43 @@ document.getElementById('rolePlanner').classList.toggle('on',curRole==='planner'
 document.querySelectorAll('.tabbar .tab').forEach(t=>t.classList.remove('active'));
 document.querySelector('.tabbar .tab[data-view="'+(curRole==='planner'?'planner':'home')+'"]').classList.add('active');
 (async function init(){
-  await loadServerConfig();
-  await loadRegsFromCloud();
+  // 唤醒动画
+  const overlay=document.getElementById('wakeOverlay');
+  const dotsEl=document.getElementById('wakeDots');
+  const subEl=document.getElementById('wakeSub');
+  let dotCount=1;
+  const dotTimer=setInterval(()=>{
+    dotCount=dotCount%3+1;
+    if(dotsEl)dotsEl.textContent='●'.repeat(dotCount);
+  },500);
+
+  // 带重试的初始加载（应对 Render 免费层休眠）
+  try{
+    const res=await fetchWithRetry(API_BASE+'/api/config',{headers:FETCH_HEADERS},{retries:4,delay:5000});
+    if(res&&res.ok){serverConfig=await res.json();cloudOnline=true;}
+    else{cloudOnline=false;}
+  }catch(e){
+    cloudOnline=false;
+    serverConfig={pwd:localStorage.getItem(PWD_KEY)||PWD_DEFAULT,adminName:localStorage.getItem(ADMIN_NAME_KEY)||ADMIN_DEFAULT_NAME};
+  }
+  updateConnStatus();
+
+  try{
+    const res=await fetchWithRetry(API_BASE+'/api/regs',{headers:FETCH_HEADERS},{retries:3,delay:5000});
+    if(res&&res.ok){regsCache=await res.json();cloudOnline=true;}
+    else{try{regsCache=JSON.parse(localStorage.getItem(STORE_KEY))||[]}catch(_){regsCache=[]}}
+  }catch(e){
+    try{regsCache=JSON.parse(localStorage.getItem(STORE_KEY))||[]}catch(_){regsCache=[]}
+  }
+  updateConnStatus();
+
+  // 隐藏唤醒遮罩
+  clearInterval(dotTimer);
+  if(overlay){
+    overlay.classList.add('hide');
+    setTimeout(()=>overlay.remove(),500);
+  }
+
   renderHome();
   updateAdminUI();
   // 定时从云端刷新数据（每30秒），保持多设备同步
