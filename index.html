@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="周礼婚礼管家">
 <meta property="og:title" content="周礼婚礼管家 · 新人登记管家问卷">
 <meta property="og:description" content="专业的婚礼统筹管家服务，新人咨询与登记">
-<meta property="og:image" content="https://5e818174a720463e825ea3d39e812b2f.app.codebuddy.work/avatar.jpg">
-<meta property="og:url" content="https://5e818174a720463e825ea3d39e812b2f.app.codebuddy.work">
+<meta property="og:image" content="https://zhouli-wedding.onrender.com/avatar.jpg">
+<meta property="og:url" content="https://zhouli-wedding.onrender.com">
 <meta property="og:type" content="website">
 <meta property="og:image:width" content="512">
 <meta property="og:image:height" content="512">
@@ -493,10 +493,8 @@ const STEPS=[
   {title:'深度了解',desc:'让我们真正了解你们'}
 ];
 // ===== API 地址配置 =====
-// 通过隧道访问时自动同源，通过 CloudStudio 访问时使用隧道地址
-// 重启隧道后需要更新 TUNNEL_URL 为新地址
-const TUNNEL_URL='https://bddadefb21d4d3.lhr.life';
-const API_BASE = (location.hostname.includes('lhr.life') || location.hostname.includes('loca.lt') || location.hostname.includes('localhost')) ? '' : TUNNEL_URL;
+// 固定指向 Render 云端后端，所有设备访问同一份数据，不再依赖本地隧道
+const API_BASE='https://zhouli-wedding.onrender.com';
 const FETCH_HEADERS={'Content-Type':'application/json'};
 let curStep=0;
 let curRole='couple';
