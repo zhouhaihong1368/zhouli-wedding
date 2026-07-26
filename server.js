@@ -30,6 +30,13 @@ async function initDB() {
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS app_config (
+      key TEXT PRIMARY KEY,
+      value JSONB NOT NULL,
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
   console.log('数据库表就绪');
 }
 
@@ -60,12 +67,27 @@ async function addOne(reg) {
 }
 
 // ===== 配置存储（密码、管理员姓名，全设备共享）=====
-function getConfig() {
+async function getConfig() {
+  if (pool) {
+    const { rows } = await pool.query('SELECT key, value FROM app_config');
+    const cfg = { pwd: ADMIN_PWD, adminName: '周海红' };
+    for (const r of rows) cfg[r.key] = r.value;
+    return cfg;
+  }
   try { return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8')); }
   catch (e) { return { pwd: ADMIN_PWD, adminName: '周海红' }; }
 }
-function setConfig(updates) {
-  const current = getConfig();
+async function setConfig(updates) {
+  if (pool) {
+    for (const [key, value] of Object.entries(updates)) {
+      await pool.query(
+        'INSERT INTO app_config (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value=$2, updated_at=NOW()',
+        [key, JSON.stringify(value)]
+      );
+    }
+    return await getConfig();
+  }
+  const current = await getConfig();
   const updated = Object.assign(current, updates);
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(updated, null, 2), 'utf-8');
   return updated;
@@ -158,19 +180,19 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/verify-pwd') {
       if (req.method === 'POST') {
         const { password } = await bodyParser(req);
-        const config = getConfig();
+        const config = await getConfig();
         return json(res, 200, { ok: password === config.pwd });
       }
     }
 
     if (url.pathname === '/api/config') {
       if (req.method === 'GET') {
-        const config = getConfig();
+        const config = await getConfig();
         return json(res, 200, config);
       }
       if (req.method === 'POST') {
         const updates = await bodyParser(req);
-        const config = setConfig(updates);
+        const config = await setConfig(updates);
         return json(res, 200, { ok: true, config });
       }
     }
