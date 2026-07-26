@@ -501,7 +501,7 @@ let curRole='couple';
 let curFilter='all';
 let curDetailId=null;
 let curStatusPick='new';
-let form={services:[],weddingType:''};
+let form={services:[],weddingTypes:[],colorTheme:[]};
 let regsCache=null;
 let cloudOnline=false;
 
@@ -573,7 +573,7 @@ async function addRegToCloud(reg){
 }
 function getDraft(){try{return JSON.parse(localStorage.getItem(DRAFT_KEY))||null}catch(e){return null}}
 function saveDraft(){localStorage.setItem(DRAFT_KEY,JSON.stringify(form))}
-function loadDraftIntoForm(){const d=getDraft();if(d){form=Object.assign({services:[],weddingType:''},d)}}
+function loadDraftIntoForm(){const d=getDraft();if(d){form=Object.assign({services:[],weddingTypes:[],colorTheme:[]},d)}}
 
 const PWD_KEY='wedding_planner_pwd';
 const PWD_DEFAULT='8888';
@@ -757,6 +757,7 @@ function renderHome(){
 function renderForm(){
   renderSteps();
   renderStepContent();
+  if(curStep===3)renderCustomColors();
   const isLast=curStep===STEPS.length-1;
   document.getElementById('prevBtn').style.display=curStep>0?'block':'none';
   document.getElementById('nextBtn').textContent=isLast?'提交登记':'下一步';
@@ -777,7 +778,11 @@ function readForm(){
     form[cg.dataset.field]=cg.dataset.multi?[...cg.querySelectorAll('.chip.on')].map(c=>c.dataset.val):cg.querySelector('.chip.on')?.dataset.val||'';
   });
   document.querySelectorAll('#formBody .opt-grid[data-field]').forEach(og=>{
-    form[og.dataset.field]=og.querySelector('.opt-card.on')?.dataset.val||'';
+    if(og.dataset.multi){
+      form[og.dataset.field]=[...og.querySelectorAll('.opt-card.on')].map(c=>c.dataset.val);
+    }else{
+      form[og.dataset.field]=og.querySelector('.opt-card.on')?.dataset.val||'';
+    }
   });
   saveDraft();
 }
@@ -825,15 +830,22 @@ function renderStepContent(){
   }
   if(curStep===3){
     html+=`
-    <div class="field"><label>婚礼形式 <span class="req">*</span></label>
-      <div class="opt-grid" data-field="weddingType">
-        ${[['chinese','中式婚礼','🏮'],['western','西式婚礼','⛪'],['outdoor','户外草坪','🌿'],['church','婚礼堂婚礼','🕊️'],['banquet','酒店婚宴','🥂'],['mixed','混搭风格','🎨']].map(([v,t,ic])=>`<div class="opt-card ${form.weddingType===v?'on':''}" data-val="${v}" onclick="toggleOpt(this)"><div class="oc-ic">${ic}</div><div class="oc-tx">${t}</div></div>`).join('')}
+    <div class="field"><label>婚礼形式 <span class="req">*</span> <span style="font-size:11px;color:var(--ink-soft);font-weight:400">（可多选）</span></label>
+      <div class="opt-grid" data-field="weddingTypes" data-multi="1">
+        ${[['chinese','中式婚礼','🏮'],['western','西式婚礼','⛪'],['outdoor','户外草坪','🌿'],['church','婚礼堂婚礼','🕊️'],['banquet','酒店婚宴','🥂'],['mixed','混搭风格','🎨']].map(([v,t,ic])=>`<div class="opt-card ${(form.weddingTypes||[]).includes(v)?'on':''}" data-val="${v}" onclick="toggleOpt(this)"><div class="oc-ic">${ic}</div><div class="oc-tx">${t}</div></div>`).join('')}
       </div>
     </div>
     <div class="field"><label>喜欢的色调</label>
       <div class="chip-group" data-field="colorTheme" data-multi="1">
         ${['香槟金','玫瑰粉','星空蓝','森系绿','复古红','纯洁白','莫兰迪','撞色'].map(v=>`<div class="chip ${(form.colorTheme||[]).includes(v)?'on':''}" data-val="${v}" onclick="toggleChip(this)">${v}</div>`).join('')}
+        ${(form.colorTheme||[]).filter(v=>!['香槟金','玫瑰粉','星空蓝','森系绿','复古红','纯洁白','莫兰迪','撞色'].includes(v)).map(v=>`<div class="chip on" data-val="${v}" onclick="toggleChip(this)" style="border-color:var(--rose);background:var(--rose-soft);color:var(--rose-deep)">${v}</div>`).join('')}
       </div>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <input type="color" id="customColorPicker" style="width:42px;height:36px;border:1px solid var(--line);border-radius:8px;cursor:pointer;padding:2px;background:#fff" onchange="addCustomColor(this.value)">
+        <input type="text" id="customColorName" placeholder="输入自选色调名称" style="flex:1;height:36px;border:1px solid var(--line);border-radius:8px;padding:0 12px;font-size:14px" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomColor()}">
+        <button type="button" onclick="addCustomColor()" style="height:36px;padding:0 14px;background:var(--rose-soft);color:var(--rose-deep);border-radius:8px;font-size:13px;font-weight:600;white-space:nowrap">添加</button>
+      </div>
+      <div id="customColorList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
     </div>
     <div class="field"><label>风格关键词</label><input name="styleKeywords" value="${form.styleKeywords||''}" placeholder="如：浪漫、简约、森系、轻奢"></div>`;
   }
@@ -841,7 +853,7 @@ function renderStepContent(){
     html+=`
     <div class="field"><label>需要管家安排的服务（多选）</label>
       <div class="chip-group" data-field="services" data-multi="1">
-        ${['婚礼策划','司仪主持','化妆造型','摄影摄像','婚车租赁','花艺布置','灯光音响','婚纱礼服','伴娘伴郎服','喜糖请柬','婚房布置','接亲流程','甜品台'].map(v=>`<div class="chip ${(form.services||[]).includes(v)?'on':''}" data-val="${v}" onclick="toggleChip(this)">${v}</div>`).join('')}
+        ${['订婚习俗','婚礼策划','司仪主持','化妆造型','摄影摄像','婚车租赁','花艺布置','灯光音响','婚纱礼服','伴娘伴郎服','喜糖请柬','婚房布置','接亲流程','甜品台'].map(v=>`<div class="chip ${(form.services||[]).includes(v)?'on':''}" data-val="${v}" onclick="toggleChip(this)">${v}</div>`).join('')}
       </div>
     </div>
     <div class="field"><label>其他服务需求</label><textarea name="otherNeeds" placeholder="如有特殊服务需求请说明">${form.otherNeeds||''}</textarea></div>`;
@@ -897,9 +909,57 @@ function toggleChip(el){
 }
 function toggleOpt(el){
   const og=el.closest('.opt-grid');
-  og.querySelectorAll('.opt-card').forEach(c=>c.classList.remove('on'));
-  el.classList.add('on');
+  if(og.dataset.multi){
+    el.classList.toggle('on');
+    readForm();
+  }else{
+    og.querySelectorAll('.opt-card').forEach(c=>c.classList.remove('on'));
+    el.classList.add('on');
+    readForm();
+  }
+}
+const COLOR_PRESETS=['香槟金','玫瑰粉','星空蓝','森系绿','复古红','纯洁白','莫兰迪','撞色'];
+function addCustomColor(hex){
+  const nameInput=document.getElementById('customColorName');
+  const colorPicker=document.getElementById('customColorPicker');
+  const name=nameInput.value.trim();
+  if(!name){toast('请输入色调名称');return}
+  hex=hex||colorPicker.value;
+  form.colorTheme=form.colorTheme||[];
+  if(!form.colorTheme.includes(name)){
+    form.colorTheme.push(name);
+    const cg=document.querySelector('.chip-group[data-field="colorTheme"]');
+    if(cg&&!cg.querySelector(`.chip[data-val="${name}"]`)){
+      const chip=document.createElement('div');
+      chip.className='chip on';
+      chip.dataset.val=name;
+      chip.setAttribute('onclick','toggleChip(this)');
+      chip.style.borderColor='var(--rose)';
+      chip.style.background='var(--rose-soft)';
+      chip.style.color='var(--rose-deep)';
+      chip.textContent=name;
+      cg.appendChild(chip);
+    }
+  }
+  nameInput.value='';
+  colorPicker.value='#d96a7e';
+  renderCustomColors();
   readForm();
+  saveDraft();
+}
+function renderCustomColors(){
+  const list=document.getElementById('customColorList');
+  if(!list)return;
+  const customs=(form.colorTheme||[]).filter(v=>!COLOR_PRESETS.includes(v));
+  list.innerHTML=customs.map(v=>`<div style="display:flex;align-items:center;gap:4px;background:var(--rose-soft);padding:4px 10px;border-radius:20px;font-size:12px;color:var(--rose-deep)">${v}<span style="cursor:pointer;font-weight:700;margin-left:2px" onclick="removeCustomColor('${v.replace(/'/g,"\\'")}')">×</span></div>`).join('');
+}
+function removeCustomColor(name){
+  form.colorTheme=(form.colorTheme||[]).filter(v=>v!==name);
+  const chip=document.querySelector(`.chip-group[data-field="colorTheme"] .chip[data-val="${name}"]`);
+  if(chip)chip.remove();
+  renderCustomColors();
+  readForm();
+  saveDraft();
 }
 function validateStep(){
   readForm();
@@ -914,7 +974,7 @@ function validateStep(){
   }
   if(curStep===1){if(!form.weddingDate)return toast('请选择婚期')}
   if(curStep===2){if(!form.tables && !form.guests)return toast('请至少填写桌数或宾客人数')}
-  if(curStep===3){if(!form.weddingType)return toast('请选择婚礼形式')}
+  if(curStep===3){if(!form.weddingTypes||!form.weddingTypes.length)return toast('请选择婚礼形式')}
   return true;
 }
 function prevStep(){if(curStep>0){curStep--;renderForm();window.scrollTo(0,0)}}
@@ -1031,7 +1091,7 @@ function openDetail(id){
     </div>
     <div class="det-section">
       <h4>🎨 风格偏好</h4>
-      <div class="det-row"><div class="dk">婚礼形式</div><div class="dv">${typeMap[r.weddingType]||'-'}</div></div>
+      <div class="det-row"><div class="dk">婚礼形式</div><div class="dv">${(r.weddingTypes||[]).length?(r.weddingTypes||[]).map(v=>typeMap[v]||v).join('、'):(r.weddingType?typeMap[r.weddingType]||r.weddingType:'-')}</div></div>
       <div class="det-row"><div class="dk">色调</div><div class="dv"><div class="det-tags">${(r.colorTheme||[]).map(t=>`<span class="dt">${t}</span>`).join('')||'-'}</div></div></div>
       <div class="det-row"><div class="dk">风格关键词</div><div class="dv">${r.styleKeywords||'-'}</div></div>
     </div>
@@ -1158,7 +1218,7 @@ function exportData(){
     lines.push([
       r.createdAt||'',STATUS[r.status].label,r.groomName||'',r.groomPhone||'',r.brideName||'',r.bridePhone||'',r.wechat||'',r.city||'',
       r.weddingDate||'',r.groomAddress||'',r.brideAddress||'',r.weddingCity||'',r.venue||'',r.session||'',r.tables||'',r.guests||'',r.mealBudget||'',r.hostBudget||'',r.photoBudget||'',r.videoBudget||'',r.makeupBudget||'',r.decorBudget||'',
-      typeMap[r.weddingType]||'',(r.colorTheme||[]).join('/'),r.styleKeywords||'',(r.services||[]).join('/'),r.otherNeeds||'',r.remarks||'',r.source||'',r.contactTime||'',
+      (r.weddingTypes||[]).length?(r.weddingTypes||[]).map(v=>typeMap[v]||v).join('/'):(r.weddingType?typeMap[r.weddingType]||'':''),(r.colorTheme||[]).join('/'),r.styleKeywords||'',(r.services||[]).join('/'),r.otherNeeds||'',r.remarks||'',r.source||'',r.contactTime||'',
       r.dreamWedding||'',r.guestComposition||'',r.teaStyle||'',r.photoStyle||'',r.hostStyle||'',r.outdoorPref||'',r.favDress||'',r.wordsToFamily||'',r.friendImpression||'',r.familyInfo||'',r.decisionMaker||'',r.specialThanks||'',r.dislikeElements||'',
       (r.plannerNotes||'').replace(/[\n,]/g,' '),r.followUpDate||''
     ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
@@ -1190,15 +1250,15 @@ function importData(){
 async function loadDemo(){
   if(!confirm('将载入 3 条演示数据，不会影响已有记录。确定？'))return;
   const demo=[
-    {id:'D1',createdAt:new Date(Date.now()-86400000*3).toISOString(),status:'contacted',groomName:'陈浩',groomPhone:'13800138001',brideName:'林小雅',bridePhone:'13900139001',wechat:'chenhao_wed',city:'杭州',weddingDate:'2026-10-18',groomAddress:'杭州市西湖区龙井路1号',brideAddress:'杭州市拱墅区湖墅南路99号',weddingCity:'杭州',venue:'杭州西子湖四季酒店',session:'晚宴',tables:25,guests:250,mealBudget:'6888元/桌',hostBudget:'5000元',photoBudget:'6000元',videoBudget:'6000元',makeupBudget:'3000元',decorBudget:'12万',weddingType:'outdoor',colorTheme:['香槟金','森系绿'],styleKeywords:'浪漫、自然、轻奢',services:['婚礼策划','司仪主持','化妆造型','摄影摄像','花艺布置'],otherNeeds:'',remarks:'希望有户外草坪仪式',source:'朋友推荐',contactTime:'工作日晚间',plannerNotes:'客户预算充足，对花艺要求高，已发送方案初稿',followUpDate:'2026-07-25'},
-    {id:'D2',createdAt:new Date(Date.now()-86400000*1).toISOString(),status:'new',groomName:'王磊',groomPhone:'13700137002',brideName:'赵敏',bridePhone:'',wechat:'zhaomin_22',city:'杭州',weddingDate:'2027-01-06',groomAddress:'',brideAddress:'',weddingCity:'',venue:'待定',session:'午宴',tables:15,guests:150,mealBudget:'3888元/桌',hostBudget:'2000元',photoBudget:'3000元',videoBudget:'3000元',makeupBudget:'1500元',decorBudget:'5万',weddingType:'chinese',colorTheme:['复古红','香槟金'],styleKeywords:'传统、喜庆',services:['婚礼策划','司仪主持','婚车租赁','喜糖请柬'],otherNeeds:'',remarks:'长辈较多，注重传统礼仪',source:'小红书',contactTime:'周末上午',plannerNotes:'',followUpDate:''},
-    {id:'D3',createdAt:new Date(Date.now()-86400000*7).toISOString(),status:'signed',groomName:'刘洋',groomPhone:'13600136003',brideName:'周婷',bridePhone:'13500135003',wechat:'liuyang_zt',city:'上海',weddingDate:'2026-09-20',groomAddress:'',brideAddress:'',weddingCity:'上海',venue:'上海外滩茂悦大酒店',session:'午+晚',tables:30,guests:300,mealBudget:'8888元/桌',hostBudget:'8000元',photoBudget:'10000元',videoBudget:'10000元',makeupBudget:'5000元',decorBudget:'20万',weddingType:'banquet',colorTheme:['星空蓝','纯洁白'],styleKeywords:'大气、梦幻',services:['婚礼策划','司仪主持','化妆造型','摄影摄像','婚车租赁','花艺布置','灯光音响','婚纱礼服'],otherNeeds:'需要航拍',remarks:'',source:'婚博会',contactTime:'随时',plannerNotes:'已签约，定金已付，进入方案细化阶段',followUpDate:'2026-07-30'}
+    {id:'D1',createdAt:new Date(Date.now()-86400000*3).toISOString(),status:'contacted',groomName:'陈浩',groomPhone:'13800138001',brideName:'林小雅',bridePhone:'13900139001',wechat:'chenhao_wed',city:'杭州',weddingDate:'2026-10-18',groomAddress:'杭州市西湖区龙井路1号',brideAddress:'杭州市拱墅区湖墅南路99号',weddingCity:'杭州',venue:'杭州西子湖四季酒店',session:'晚宴',tables:25,guests:250,mealBudget:'6888元/桌',hostBudget:'5000元',photoBudget:'6000元',videoBudget:'6000元',makeupBudget:'3000元',decorBudget:'12万',weddingTypes:['outdoor'],colorTheme:['香槟金','森系绿'],styleKeywords:'浪漫、自然、轻奢',services:['订婚习俗','婚礼策划','司仪主持','化妆造型','摄影摄像','花艺布置'],otherNeeds:'',remarks:'希望有户外草坪仪式',source:'朋友推荐',contactTime:'工作日晚间',plannerNotes:'客户预算充足，对花艺要求高，已发送方案初稿',followUpDate:'2026-07-25'},
+    {id:'D2',createdAt:new Date(Date.now()-86400000*1).toISOString(),status:'new',groomName:'王磊',groomPhone:'13700137002',brideName:'赵敏',bridePhone:'',wechat:'zhaomin_22',city:'杭州',weddingDate:'2027-01-06',groomAddress:'',brideAddress:'',weddingCity:'',venue:'待定',session:'午宴',tables:15,guests:150,mealBudget:'3888元/桌',hostBudget:'2000元',photoBudget:'3000元',videoBudget:'3000元',makeupBudget:'1500元',decorBudget:'5万',weddingTypes:['chinese'],colorTheme:['复古红','香槟金'],styleKeywords:'传统、喜庆',services:['订婚习俗','婚礼策划','司仪主持','婚车租赁','喜糖请柬'],otherNeeds:'',remarks:'长辈较多，注重传统礼仪',source:'小红书',contactTime:'周末上午',plannerNotes:'',followUpDate:''},
+    {id:'D3',createdAt:new Date(Date.now()-86400000*7).toISOString(),status:'signed',groomName:'刘洋',groomPhone:'13600136003',brideName:'周婷',bridePhone:'13500135003',wechat:'liuyang_zt',city:'上海',weddingDate:'2026-09-20',groomAddress:'',brideAddress:'',weddingCity:'上海',venue:'上海外滩茂悦大酒店',session:'午+晚',tables:30,guests:300,mealBudget:'8888元/桌',hostBudget:'8000元',photoBudget:'10000元',videoBudget:'10000元',makeupBudget:'5000元',decorBudget:'20万',weddingTypes:['banquet'],colorTheme:['星空蓝','纯洁白'],styleKeywords:'大气、梦幻',services:['订婚习俗','婚礼策划','司仪主持','化妆造型','摄影摄像','婚车租赁','花艺布置','灯光音响','婚纱礼服'],otherNeeds:'需要航拍',remarks:'',source:'婚博会',contactTime:'随时',plannerNotes:'已签约，定金已付，进入方案细化阶段',followUpDate:'2026-07-30'}
   ];
   await saveRegsToCloud([...getRegs(), ...demo]);
   toast('已载入 3 条示例数据');
   renderHome();
 }
-function clearDraft(){localStorage.removeItem(DRAFT_KEY);form={services:[],weddingType:''};toast('草稿已清空')}
+function clearDraft(){localStorage.removeItem(DRAFT_KEY);form={services:[],weddingTypes:[],colorTheme:[]};toast('草稿已清空')}
 async function clearAll(){
   showPwd('危险操作','清空全部数据需验证管理密码',async ()=>{
     if(!confirm('⚠️ 确认清空全部登记数据？此操作不可恢复！'))return;
